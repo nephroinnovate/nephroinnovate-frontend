@@ -79,6 +79,13 @@ cd vite
 npm install
 npm run
 ```
+or (idk) - A.M
+
+```
+cd vite
+yarn install
+yarn start
+```
 ## Documentation
 
 [Berry documentation](https://codedthemes.gitbook.io/berry/) helps you with installation, deployment, and troubleshooting.
