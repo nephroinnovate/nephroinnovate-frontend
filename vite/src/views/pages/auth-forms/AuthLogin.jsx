@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
+import authApi from '../../../api/auth';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -26,6 +29,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 export default function AuthLogin() {
   const theme = useTheme();
+  const navigate = useNavigate();
 
   const [checked, setChecked] = useState(true);
 
@@ -38,58 +42,171 @@ export default function AuthLogin() {
     event.preventDefault();
   };
 
+  const [values, setValues] = useState({
+    email: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: 'success'
+  });
+
+  const handleChange = (prop) => (event) => {
+    setValues({ ...values, [prop]: event.target.value });
+    if (errors[prop]) {
+      setErrors({ ...errors, [prop]: '' });
+    }
+  };
+
+  const handleCloseNotification = () => {
+    setNotification({ ...notification, show: false });
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!values.email) {
+      newErrors.email = 'Email is required';
+    }
+    if (!values.password) {
+      newErrors.password = 'Password is required';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await authApi.login({
+        email: values.email,
+        password: values.password
+      });
+
+      // You might want to store the token in localStorage
+      localStorage.setItem('token', response.token);
+
+      setNotification({
+        show: true,
+        message: 'Login successful!',
+        type: 'success'
+      });
+
+      // Redirect to dashboard after successful login
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+
+    } catch (error) {
+      setNotification({
+        show: true,
+        message: error.message || 'Login failed. Please try again.',
+        type: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
-      <FormControl fullWidth sx={{ ...theme.typography.customInput }}>
-        <InputLabel htmlFor="outlined-adornment-email-login">Email Address / Username</InputLabel>
-        <OutlinedInput id="outlined-adornment-email-login" type="email" value="info@codedthemes.com" name="email" inputProps={{}} />
-      </FormControl>
-
-      <FormControl fullWidth sx={{ ...theme.typography.customInput }}>
-        <InputLabel htmlFor="outlined-adornment-password-login">Password</InputLabel>
-        <OutlinedInput
-          id="outlined-adornment-password-login"
-          type={showPassword ? 'text' : 'password'}
-          value="123456"
-          name="password"
-          endAdornment={
-            <InputAdornment position="end">
-              <IconButton
-                aria-label="toggle password visibility"
-                onClick={handleClickShowPassword}
-                onMouseDown={handleMouseDownPassword}
-                edge="end"
-                size="large"
-              >
-                {showPassword ? <Visibility /> : <VisibilityOff />}
-              </IconButton>
-            </InputAdornment>
-          }
-          inputProps={{}}
-          label="Password"
-        />
-      </FormControl>
-
-      <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-        <Grid>
-          <FormControlLabel
-            control={<Checkbox checked={checked} onChange={(event) => setChecked(event.target.checked)} name="checked" color="primary" />}
-            label="Keep me logged in"
+      <form onSubmit={handleSubmit}>
+        <FormControl fullWidth sx={{ ...theme.typography.customInput }} error={Boolean(errors.email)}>
+          <InputLabel htmlFor="outlined-adornment-email-login">Email Address</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-email-login"
+            type="email"
+            value={values.email}
+            name="email"
+            onChange={handleChange('email')}
+            label="Email Address"
           />
+          {errors.email && (
+            <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+              {errors.email}
+            </Typography>
+          )}
+        </FormControl>
+
+        <FormControl fullWidth sx={{ ...theme.typography.customInput }} error={Boolean(errors.password)}>
+          <InputLabel htmlFor="outlined-adornment-password-login">Password</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-password-login"
+            type={showPassword ? 'text' : 'password'}
+            value={values.password}
+            name="password"
+            onChange={handleChange('password')}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={handleClickShowPassword}
+                  onMouseDown={handleMouseDownPassword}
+                  edge="end"
+                  size="large"
+                >
+                  {showPassword ? <Visibility /> : <VisibilityOff />}
+                </IconButton>
+              </InputAdornment>
+            }
+            label="Password"
+          />
+          {errors.password && (
+            <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+              {errors.password}
+            </Typography>
+          )}
+        </FormControl>
+
+        <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <Grid>
+            <FormControlLabel
+              control={<Checkbox checked={checked} onChange={(event) => setChecked(event.target.checked)} name="checked" color="primary" />}
+              label="Keep me logged in"
+            />
+          </Grid>
+          <Grid>
+            <Typography variant="subtitle1" component={Link} to="/forgot-password" color="secondary" sx={{ textDecoration: 'none' }}>
+              Forgot Password?
+            </Typography>
+          </Grid>
         </Grid>
-        <Grid>
-          <Typography variant="subtitle1" component={Link} to="/forgot-password" color="secondary" sx={{ textDecoration: 'none' }}>
-            Forgot Password?
-          </Typography>
-        </Grid>
-      </Grid>
-      <Box sx={{ mt: 2 }}>
-        <AnimateButton>
-          <Button color="secondary" fullWidth size="large" type="submit" variant="contained">
-            Sign In
-          </Button>
-        </AnimateButton>
-      </Box>
+        <Box sx={{ mt: 2 }}>
+          <AnimateButton>
+            <Button
+              disableElevation
+              fullWidth
+              size="large"
+              type="submit"
+              variant="contained"
+              color="secondary"
+              disabled={loading}
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </Button>
+          </AnimateButton>
+        </Box>
+      </form>
+
+      <Snackbar
+        open={notification.show}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseNotification} severity={notification.type} sx={{ width: '100%' }}>
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }
