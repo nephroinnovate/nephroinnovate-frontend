@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="500" height="300" viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="500" height="300" fill="#f0f6ff"/>
+  
+  <!-- Medical Monitor -->
+  <rect x="150" y="50" width="200" height="150" rx="10" fill="#ffffff" stroke="#3f51b5" stroke-width="3"/>
+  
+  <!-- Monitor Screen -->
+  <rect x="160" y="60" width="180" height="100" rx="5" fill="#e3f2fd"/>
+  
+  <!-- Heart Rate Line -->
+  <path d="M160,110 L180,110 L190,80 L200,140 L210,110 L220,110 L230,95 L240,125 L250,110 L260,110 L270,90 L280,130 L290,110 L300,110 L310,110 L320,110 L330,110 L340,110" 
+        stroke="#f44336" fill="none" stroke-width="2"/>
+  
+  <!-- Monitor Controls -->
+  <circle cx="175" cy="180" r="8" fill="#9fa8da"/>
+  <circle cx="205" cy="180" r="8" fill="#9fa8da"/>
+  <circle cx="235" cy="180" r="8" fill="#9fa8da"/>
+  <rect x="265" y="172" width="70" height="16" rx="8" fill="#9fa8da"/>
+  
+  <!-- Kidney Icon (simplified) -->
+  <path d="M380,150 C420,100 420,200 380,150 M120,150 C80,100 80,200 120,150" 
+        fill="#ef9a9a" stroke="#c62828" stroke-width="2"/>
+  
+  <!-- Water Drops (representing dialysis) -->
+  <path d="M320,220 C320,240 340,240 340,220 Q340,200 330,190 Q320,200 320,220" fill="#64b5f6"/>
+  <path d="M350,240 C350,260 370,260 370,240 Q370,220 360,210 Q350,220 350,240" fill="#64b5f6"/>
+  <path d="M130,220 C130,240 150,240 150,220 Q150,200 140,190 Q130,200 130,220" fill="#64b5f6"/>
+  <path d="M160,240 C160,260 180,260 180,240 Q180,220 170,210 Q160,220 160,240" fill="#64b5f6"/>
+  
+  <!-- Text Label -->
+  <text x="250" y="270" font-family="Arial" font-size="20" font-weight="bold" fill="#3f51b5" text-anchor="middle">DialysisHub</text>
+</svg>
