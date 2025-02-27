@@ -25,9 +25,9 @@ jobs:
           npm install 
           npm run build 
 
-      # 4. Zip only the build output (dist folder)
+      # 4. Zip the build output (assuming build folder instead of dist)
       - name: Zip artifact for deployment
-        run: zip -r release.zip dist
+        run: zip -r release.zip build
 
       # 5. Upload artifact
       - name: Upload artifact for deployment job
