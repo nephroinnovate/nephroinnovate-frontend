@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy Node.js app to Azure Web App - demonephroinnovate-frontend
 
 on:
@@ -12,24 +9,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
+      # 1. Check out your repository code
       - uses: actions/checkout@v4
 
+      # 2. Set up Node.js
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
 
-      - name: npm install, build, and test
+      # 3. Install dependencies, build, and test
+      - name: Install, build, and test
         run: |
           npm install
-          npm run build --if-present
-          npm run test --if-present
+          npm run build
+          npm run test
 
+      # 4. Zip only the build output (dist folder)
       - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+        run: zip -r release.zip dist
 
+      # 5. Upload artifact
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -41,22 +42,22 @@ jobs:
     needs: build
     environment:
       name: 'Production'
+      # Optional: output the webapp URL if you want
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
+      # 1. Download the artifact from the build job
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-
-      - name: 'Deploy to Azure Web App'
+      # 2. Deploy the ZIP directly to Azure Web App
+      - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'demonephroinnovate-frontend'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F62DDFC73F864B9DA85D0B16A1AB5279 }}
-          package: .
+          package: release.zip
