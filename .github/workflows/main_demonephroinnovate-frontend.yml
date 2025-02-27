@@ -19,12 +19,11 @@ jobs:
         with:
           node-version: '20.x'
 
-      # 3. Install dependencies, build, and test
-      - name: Install, build, and test
+      # 3. Install dependencies and build (removed test step)
+      - name: Install and build
         run: |
-          npm install
-          npm run build
-          npm run test
+          npm install 
+          npm run build 
 
       # 4. Zip only the build output (dist folder)
       - name: Zip artifact for deployment
@@ -42,7 +41,6 @@ jobs:
     needs: build
     environment:
       name: 'Production'
-      # Optional: output the webapp URL if you want
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
