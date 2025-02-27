@@ -1,139 +1,75 @@
-# Berry Free React Material UI Admin Template [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Get%20Berry%20React%20-%20The%20most%20beautiful%20Material%20designed%20Admin%20Dashboard%20Template%20&url=https://berrydashboard.io&via=codedthemes&hashtags=reactjs,webdev,developers,javascript)
+# Getting Started with Create React App
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Price](https://img.shields.io/badge/price-FREE-0098f7.svg)](https://github.com/codedthemes/berry-free-react-admin-template/blob/main/LICENSE)
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-Berry is a free Material UI admin dashboard template built with React. It is meant to provide the best possible User Experience with highly customizable feature-rich pages. It is a complete Dashboard Template that has easy and intuitive responsive design whether it is viewed on retina screens or laptops.
+## Available Scripts
 
-:star: :star: :star: Do not forget to star (Top right of this page) it if you like the theme :star: :star: :star:
+In the project directory, you can run:
 
-![IMG_8566.jpg](https://berrydashboard.io/imp-images/berry-github-free-repo-1.jpg)
+### `Yarn`
 
-[Pro version](https://berrydashboard.io) of Berry react template contains features like TypeScript, Next.js Seed versions, Apps, Authentication Methods (i.e. JWT, Auth0, Firebase), Advance Components, Form Plugins, Layouts, Widgets, and many more.
+Install packages
 
-| [Berry Free](https://berrydashboard.io/free/) | [Berry](https://material-ui.com/store/items/berry-react-material-admin/) |
-| --------------------------------------------- | :----------------------------------------------------------------------- |
-| **9** Demo pages                              | **45+** demo pages                                                       |
-| -                                             | ✓ Multi-language                                                         |
-| -                                             | ✓ Dark/Light Mode 🌓                                                     |
-| -                                             | ✓ TypeScript version                                                     |
-| -                                             | ✓ Design files (Figma)                                                   |
-| -                                             | ✓ 6+ color Options                                                       |
-| -                                             | ✓ RTL                                                                    |
-| -                                             | ✓ JWT, Firebase, Auth0 authentications                                   |
-| -                                             | ✓ [More components](https://berrydashboard.io/dashboard/default)         |
+### `Yarn start`
 
-## Why Berry?
+Runs the app in the development mode.\
 
-Berry offers everything you need to create dashboards. We have included the following high-end features in our initial release:
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
--   Modern aesthetics UI design
--   Material-UI components
--   Fully Responsive, all modern browser supported
--   Easy to use code structure
--   Flexible & High-Performance code
--   Easy Documentation Guide
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-## Free Berry React version
+### `yarn test`
 
-#### Preview
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-- [Demo](https://berrydashboard.io/free/)
+### `yarn build`
 
-#### Download
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-- [Download from GitHub](https://github.com/codedthemes/berry-free-react-admin-template)
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-## Berry Pro version
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-#### Preview
+### `yarn eject`
 
-- [Demo](https://berrydashboard.io)
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-#### Purchase
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-- [Purchase from MUI Store](https://material-ui.com/store/items/berry-react-material-admin/)
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-## Table of contents
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
--   [Getting Started](#getting-started)
--   [Documentation](#documentation)
--   [Technology Stack](#technology-stack)
--   [Author](#author)
--   [Issues?](#issues)
--   [License](#license)
--   [More Free Angular Templates](#more-free-react-material-admin-templates)
--   [More Pro Angular Templates](#more-premium-react-material-admin-templates)
--   [Follow us](#follow-us)
+## Learn More
 
-## Getting Started
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-Clone from Github
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-```
-git clone https://github.com/codedthemes/berry-free-react-admin-template.git
-```
+### Code Splitting
 
-```
-cd vite
-npm install
-npm run
-```
-or (idk) - A.M
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-```
-cd vite
-yarn install
-yarn start
-```
-## Documentation
+### Analyzing the Bundle Size
 
-[Berry documentation](https://codedthemes.gitbook.io/berry/) helps you with installation, deployment, and troubleshooting.
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-## Technology Stack
+### Making a Progressive Web App
 
--   [Material UI V5](https://material-ui.com/)
--   Built with React Hooks API
--   Redux & React Context API for State Management
--   React Router for Navigation Routing
--   Support of vite
--   Code Splitting
--   CSS-in-JS where CSS is composed using JavaScript instead of defined in external files
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-## Author
+### Advanced Configuration
 
-Berry is developed by Team [CodedThemes](https://codedthemes.com).
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-## Issues
+### Deployment
 
-To report a bug, please submit an [issue](https://github.com/codedthemes/berry-free-react-admin-template/issues) on Github. We will respond as soon as possible to resolve the issue.
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-## License
+### `yarn build` fails to minify
 
--   Licensed cover under [MIT](https://github.com/codedthemes/datta-able-bootstrap-dashboard/blob/master/LICENSE)
-
-## Berry - Nodejs version by Appseed
-
--   [Free Nodejs](https://appseed.us/product/react-node-js-berry-dashboard)
--   [Premium Berry Nodejs](https://appseed.us/full-stack/react-berry-dashboard)
-
-## More Free React Material Admin Templates
-
--   [Free Materially](https://codedthemes.com/item/materially-free-reactjs-admin-template/)
--   [Free Mantis](https://mantisdashboard.io/free/)
--   [Free Datta Able](https://lite.codedthemes.com/datta-able/react/default)
-
-## More Premium React Material Admin Templates
-
--   [Mantis](https://mui.com/store/items/mantis-react-admin-dashboard-template/)
--   [Materially](https://codedthemes.com/item/materially-reactjs-admin-dashboard/)
--   [Datta Able](https://codedthemes.com/item/datta-able-react-admin-template/)
-
-## Follow us
-
--   [Website](https://berrydashboard.io)
--   [Blog](https://blog.berrydashboard.io)
--   [CodedThemes](https://codedthemes.com)
--   [Dribbble](https://dribbble.com/codedthemes)
--   [Facebook](https://www.facebook.com/codedthemes)
--   [𝕏 (Twitter)](https://twitter.com/codedthemes)
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
