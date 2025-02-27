@@ -19,17 +19,32 @@ jobs:
         with:
           node-version: '20.x'
 
-      # 3. Install dependencies and build (removed test step)
+      # 3. Install dependencies and build
       - name: Install and build
         run: |
           npm install 
           npm run build 
 
-      # 4. Zip the build output (assuming build folder instead of dist)
-      - name: Zip artifact for deployment
-        run: zip -r release.zip build
+      # 4. Check what build directory was created
+      - name: Check build output directory
+        run: ls -la
 
-      # 5. Upload artifact
+      # 5. Zip the build output with error handling
+      - name: Zip artifact for deployment
+        run: |
+          if [ -d "build" ]; then
+            echo "Zipping build directory"
+            zip -r release.zip build
+          elif [ -d "dist" ]; then
+            echo "Zipping dist directory"
+            zip -r release.zip dist
+          else
+            echo "Neither build nor dist directory found. Listing current directory:"
+            ls -la
+            exit 1
+          fi
+
+      # 6. Upload artifact
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
