@@ -5,7 +5,7 @@ import jsconfigPaths from 'vite-jsconfig-paths';
 export default defineConfig(({ mode }) => {
     // depending on your application, base can also be "/"
     const env = loadEnv(mode, process.cwd(), '');
-    const API_URL = `${env.VITE_APP_BASE_NAME}`;
+    const API_URL = `${env.VITE_APP_BASE_NAME || '/'}`;
     const PORT = 3001;
 
     return {
@@ -17,7 +17,15 @@ export default defineConfig(({ mode }) => {
             host: true
         },
         build: {
-            chunkSizeWarningLimit: 1600
+            chunkSizeWarningLimit: 1600,
+            rollupOptions: {
+                output: {
+                    manualChunks: {
+                        vendor: ['react', 'react-dom', 'react-router-dom'],
+                        ui: ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled']
+                    }
+                }
+            }
         },
         preview: {
             open: true,
