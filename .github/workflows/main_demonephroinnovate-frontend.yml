@@ -28,7 +28,7 @@ jobs:
           # Skip tests as there appear to be no test files
 
       - name: Zip artifact for deployment
-        run: zip -r release.zip dist/* package.json package-lock.json staticwebapp.config.json
+        run: zip -r release.zip build/* package.json package-lock.json staticwebapp.config.json
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
