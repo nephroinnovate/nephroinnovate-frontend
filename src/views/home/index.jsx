@@ -89,7 +89,7 @@ const HomePage = () => {
                 Welcome to DialysisHub
               </Typography>
               <Typography variant="h4" sx={{ mb: 4, fontWeight: 'normal' }}>
-                A comprehensive platform enhancing communication and coordination between dialysis patients and healthcare providers.
+                CI/CD test change!!! A comprehensive platform enhancing communication and coordination between dialysis patients and healthcare providers.
               </Typography>
               <Stack direction="row" spacing={2}>
                 <Button 
