@@ -135,7 +135,7 @@ export default function AuthRegister() {
 
       // Redirect to login page after successful registration
       setTimeout(() => {
-        navigate('/login');
+        navigate('/pages/login');
       }, 2000);
     } catch (error) {
       setNotification({
