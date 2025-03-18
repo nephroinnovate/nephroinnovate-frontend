@@ -31,7 +31,7 @@ import {
   IconButton,
   Stack,
   Toolbar,
-  Typography
+  Typography,
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import Logo from 'ui-component/Logo';
@@ -646,7 +646,115 @@ const HomePage = () => {
         </Container>
       </Box>
 
-      {/* Testimonials Section */}
+      {/* Partners & Integrations Section */}
+<Box sx={{ py: 8, bgcolor: 'background.paper' }}>
+  <Container>
+    <Box
+      component={motion.div}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      sx={{ mb: 6, textAlign: 'center' }}
+    >
+      <Typography
+        variant="overline"
+        component="p"
+        color="primary"
+        sx={{ fontWeight: 'bold', mb: 1, letterSpacing: 2 }}
+      >
+        TRUSTED ECOSYSTEM
+      </Typography>
+      <Typography
+        variant="h2"
+        component="h2"
+        gutterBottom
+        sx={{ fontWeight: 700 }}
+      >
+        Partners & Integrations
+      </Typography>
+      <Typography
+        variant="body1"
+        color="text.secondary"
+        sx={{ maxWidth: 700, mx: 'auto', mb: 4 }}
+      >
+        We've partnered with leading healthcare organizations and technology providers to create a seamless experience for patients and providers.
+      </Typography>
+    </Box>
+
+    <Grid container spacing={4} alignItems="center" justifyContent="center">
+      {[
+        "https://via.placeholder.com/200x80?text=Hospital+Group",
+        "https://via.placeholder.com/200x80?text=Health+Insurance",
+        "https://via.placeholder.com/200x80?text=Medical+Systems",
+        "https://via.placeholder.com/200x80?text=Tech+Partner",
+        "https://via.placeholder.com/200x80?text=Research+Institute",
+        "https://via.placeholder.com/200x80?text=University"
+      ].map((logo, index) => (
+        <Grid item xs={6} sm={4} md={2} key={index}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <Box
+              component="img"
+              src={logo}
+              alt={`Partner ${index + 1}`}
+              sx={{
+                width: '100%',
+                height: 'auto',
+                opacity: 0.7,
+                transition: 'all 0.3s ease',
+                filter: 'grayscale(100%)',
+                '&:hover': {
+                  opacity: 1,
+                  filter: 'grayscale(0%)',
+                  transform: 'scale(1.05)'
+                }
+              }}
+            />
+          </motion.div>
+        </Grid>
+      ))}
+    </Grid>
+
+    <Box
+      component={motion.div}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      sx={{
+        mt: 6,
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 2
+      }}
+    >
+      <Typography variant="body1" color="text.secondary">
+        Interested in becoming a partner?
+      </Typography>
+      <Button
+        variant="outlined"
+        color="primary"
+        endIcon={<IconArrowRight size={18} />}
+        component={RouterLink}
+        to="/partners"
+        sx={{
+          borderRadius: '30px',
+          px: 3
+        }}
+      >
+        Partner with us
+      </Button>
+    </Box>
+  </Container>
+</Box>
+
+
+{/* Testimonials Section */}
       <Box sx={{ py: 10, bgcolor: 'background.default' }}>
         <Container>
           <Box
@@ -880,6 +988,8 @@ const HomePage = () => {
           </Grid>
         </Container>
       </Box>
+
+
 
       {/* Modernized Call to Action */}
       <Box
@@ -1245,7 +1355,216 @@ const HomePage = () => {
         </Container>
       </Box>
 
-      {/* Modern Footer */}
+      {/* Resources & Educational Content */}
+<Box sx={{ py: 10, bgcolor: 'background.default' }}>
+  <Container>
+    <Box
+      component={motion.div}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      sx={{ mb: 6, textAlign: 'center' }}
+    >
+      <Typography
+        variant="overline"
+        component="p"
+        color="primary"
+        sx={{ fontWeight: 'bold', mb: 1, letterSpacing: 2 }}
+      >
+        KNOWLEDGE CENTER
+      </Typography>
+      <Typography
+        variant="h2"
+        component="h2"
+        gutterBottom
+        sx={{ fontWeight: 700 }}
+      >
+        Educational Resources
+      </Typography>
+      <Typography
+        variant="body1"
+        color="text.secondary"
+        sx={{ maxWidth: 700, mx: 'auto', mb: 4 }}
+      >
+        Access our library of resources designed to help you better understand kidney disease, dialysis treatment options, and lifestyle recommendations.
+      </Typography>
+    </Box>
+
+    <Grid container spacing={3}>
+      {[
+        {
+          title: "Understanding Your Kidney Function Tests",
+          category: "Medical Education",
+          image: "https://images.unsplash.com/photo-1576671081837-49000212a370?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+          type: "Article",
+          readTime: "5 min read"
+        },
+        {
+          title: "Dialysis Diet: Foods to Enjoy and Avoid",
+          category: "Nutrition",
+          image: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+          type: "Video",
+          readTime: "10 min watch"
+        },
+        {
+          title: "Managing Fluid Intake Between Treatments",
+          category: "Self Care",
+          image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+          type: "Guide",
+          readTime: "7 min read"
+        }
+      ].map((resource, index) => (
+        <Grid item xs={12} sm={6} md={4} key={index}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <Card
+              elevation={0}
+              sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                borderRadius: 3,
+                overflow: 'hidden',
+                border: `1px solid ${theme.palette.divider}`,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-8px)',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                  '& .resource-image': {
+                    transform: 'scale(1.05)'
+                  },
+                  '& .resource-title': {
+                    color: theme.palette.primary.main
+                  }
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'relative',
+                  height: 200,
+                  overflow: 'hidden'
+                }}
+              >
+                <Box
+                  className="resource-image"
+                  component="img"
+                  src={resource.image}
+                  alt={resource.title}
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    transition: 'transform 0.6s ease'
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 12,
+                    right: 12,
+                    bgcolor: 'rgba(0,0,0,0.6)',
+                    color: 'white',
+                    borderRadius: 5,
+                    px: 1.5,
+                    py: 0.5,
+                    fontSize: '0.75rem',
+                    fontWeight: 500
+                  }}
+                >
+                  {resource.type}
+                </Box>
+              </Box>
+
+              <CardContent sx={{ p: 3, flexGrow: 1 }}>
+                <Typography
+                  variant="overline"
+                  component="div"
+                  sx={{
+                    color: theme.palette.primary.main,
+                    mb: 1
+                  }}
+                >
+                  {resource.category}
+                </Typography>
+                <Typography
+                  className="resource-title"
+                  variant="h5"
+                  component="h3"
+                  gutterBottom
+                  sx={{
+                    fontWeight: 600,
+                    transition: 'color 0.3s ease',
+                    mb: 2
+                  }}
+                >
+                  {resource.title}
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                  >
+                    {resource.readTime}
+                  </Typography>
+
+                  <Button
+                    color="primary"
+                    endIcon={<IconArrowRight size={16} />}
+                    sx={{
+                      '&:hover': {
+                        bgcolor: 'transparent',
+                        '& .MuiButton-endIcon': {
+                          transform: 'translateX(3px)'
+                        }
+                      },
+                      '& .MuiButton-endIcon': {
+                        transition: 'transform 0.2s ease'
+                      }
+                    }}
+                  >
+                    Learn more
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </Grid>
+      ))}
+    </Grid>
+
+    <Box sx={{ textAlign: 'center', mt: 6 }}>
+      <Button
+        variant="outlined"
+        color="primary"
+        size="large"
+        endIcon={<IconArrowRight />}
+        component={RouterLink}
+        to="/resources"
+        sx={{
+          borderRadius: '30px',
+          px: 4,
+          py: 1.5
+        }}
+      >
+        View All Resources
+      </Button>
+    </Box>
+  </Container>
+</Box>
+
+
+{/* Modern Footer */}
       <Box sx={{ py: 6, bgcolor: theme.palette.grey[900], color: 'white' }}>
         <Container>
           <Grid container spacing={4}>
