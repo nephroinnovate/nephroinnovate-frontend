@@ -92,8 +92,14 @@ export default function AuthLogin() {
         password: values.password
       });
 
-      // Store the access token in localStorage
+      // Store the access token and user role in localStorage
       localStorage.setItem('token', response.access_token);
+      localStorage.setItem('userRole', response.role || 'user');
+
+      // Store user ID if available
+      if (response.id) {
+        localStorage.setItem('userId', response.id.toString());
+      }
 
       // Store user data if needed
       if (response.user) {
@@ -108,7 +114,7 @@ export default function AuthLogin() {
 
       // Redirect to dashboard after successful login
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/dashboard/default');
       }, 1000);
 
     } catch (error) {

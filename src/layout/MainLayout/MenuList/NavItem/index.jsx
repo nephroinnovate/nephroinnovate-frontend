@@ -35,6 +35,18 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
 
   const [hoverStatus, setHover] = useState(false);
 
+  // Check if the user has access to this menu item
+  const userRole = localStorage.getItem('userRole');
+  const hasAccess = !item.access ||
+                   (Array.isArray(item.access)
+                     ? item.access.includes(userRole)
+                     : item.access === userRole);
+
+  // If the user doesn't have access, don't render the menu item
+  if (!hasAccess) {
+    return null;
+  }
+
   const compareSize = () => {
     const compare = ref.current && ref.current.scrollWidth > ref.current.clientWidth;
     setHover(compare);

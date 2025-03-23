@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -27,6 +28,7 @@ import UpgradePlanCard from './UpgradePlanCard';
 import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
 import useConfig from 'hooks/useConfig';
+import authApi from 'api/auth';
 
 // assets
 import User1 from 'assets/images/users/user-round.svg';
@@ -36,12 +38,28 @@ import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons-re
 
 export default function ProfileSection() {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { borderRadius } = useConfig();
   const [sdm, setSdm] = useState(true);
   const [value, setValue] = useState('');
   const [notification, setNotification] = useState(false);
   const [selectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
+
+  // Get user information
+  const userRole = localStorage.getItem('userRole') || 'Guest';
+
+  // Handle logout
+  const handleLogout = () => {
+    // Use the existing auth API logout function
+    authApi.logout();
+
+    // Close the profile dropdown
+    setOpen(false);
+
+    // Redirect to home page
+    navigate('/');
+  };
 
   /**
    * anchorRef is used on different components and specifying one type leads to other components throwing an error
@@ -134,7 +152,9 @@ export default function ProfileSection() {
                             Johne Doe
                           </Typography>
                         </Stack>
-                        <Typography variant="subtitle2">Project Admin</Typography>
+                        <Typography variant="subtitle2" sx={{ textTransform: 'capitalize' }}>
+                          {userRole}
+                        </Typography>
                       </Stack>
                       <OutlinedInput
                         sx={{ width: '100%', pr: 1, pl: 2, my: 2 }}
@@ -243,7 +263,11 @@ export default function ProfileSection() {
                             }
                           />
                         </ListItemButton>
-                        <ListItemButton sx={{ borderRadius: `${borderRadius}px` }} selected={selectedIndex === 4}>
+                        <ListItemButton
+                          sx={{ borderRadius: `${borderRadius}px` }}
+                          selected={selectedIndex === 4}
+                          onClick={handleLogout}
+                        >
                           <ListItemIcon>
                             <IconLogout stroke={1.5} size="20px" />
                           </ListItemIcon>

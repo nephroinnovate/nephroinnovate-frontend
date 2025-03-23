@@ -1,29 +1,32 @@
 {
-  "platform": {
-    "apiRuntime": "node:18"
-  },
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,gif,svg,webp}", "/css/*", "/js/*", "/assets/*", "/*.{ico,json}"]
-  },
   "routes": [
+    {
+      "route": "/api/*",
+      "rewrite": "https://nephroinnovate-api-ultra-minimal-fpgdfabhc7c9egej.swedencentral-01.azurewebsites.net/*"
+    },
     {
       "route": "/assets/*",
       "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
+        "cache-control": "public, max-age=604800, immutable"
       }
     },
     {
-      "route": "/static/*",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "route": "/*.{js,css,png,jpg,gif,svg,webp,woff,woff2,ttf,eot}",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      }
+      "route": "/*",
+      "serve": "/index.html",
+      "statusCode": 200
     }
-  ]
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*", "/assets/*", "/*.{ico,json}", "/api/*"]
+  },
+  "platform": {
+    "apiRuntime": "node:18"
+  },
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
+  }
 }

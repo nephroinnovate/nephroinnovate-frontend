@@ -37,12 +37,18 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
+    "dev:local": "cross-env NODE_ENV=development vite",
+    "dev:prod": "cross-env NODE_ENV=production vite",
+    "debug": "cross-env NODE_ENV=development VITE_DEBUG=true vite",
     "build": "vite build",
+    "build:prod": "cross-env NODE_ENV=production vite build",
+    "deploy:azure": "cross-env NODE_ENV=production vite build",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
     "prettier": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
-    "serve": "vite preview --port 8080 --host"
+    "serve": "vite preview --port 8080 --host",
+    "postinstall": "npm run build:prod"
   },
   "eslintConfig": {
     "extends": [
@@ -66,6 +72,7 @@
     "@eslint/compat": "1.2.3",
     "@eslint/eslintrc": "3.2.0",
     "@eslint/js": "9.16.0",
+    "cross-env": "^7.0.3",
     "eslint": "9.16.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-jsx-a11y": "6.10.2",

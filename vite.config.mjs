@@ -3,18 +3,30 @@ import react from '@vitejs/plugin-react';
 import jsconfigPaths from 'vite-jsconfig-paths';
 
 export default defineConfig(({ mode }) => {
-    // depending on your application, base can also be "/"
+    // Load environment variables
     const env = loadEnv(mode, process.cwd(), '');
     const API_URL = `${env.VITE_APP_BASE_NAME || '/'}`;
+
+    // Use custom port for development server (avoid conflicts with backend)
     const PORT = 3001;
+
+    console.log(`Running in ${mode} mode with API URL: ${env.VITE_API_URL || 'not set'}`);
 
     return {
         server: {
             // this ensures that the browser opens upon server start
             open: true,
-            // this sets a default port to 3000
+            // this sets a default port to 3001 (backend is likely using 3000)
             port: PORT,
-            host: true
+            host: true,
+            // Add proxy for API requests during development
+            proxy: mode === 'development' ? {
+                '/api': {
+                    target: env.VITE_API_URL || 'http://localhost:3000',
+                    changeOrigin: true,
+                    rewrite: (path) => path.replace(/^\/api/, '')
+                }
+            } : {}
         },
         build: {
             chunkSizeWarningLimit: 1600,

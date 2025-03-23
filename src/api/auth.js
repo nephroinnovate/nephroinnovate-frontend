@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://nephroinnovate-api-ultra-minimal-fpgdfabhc7c9egej.swedencentral-01.azurewebsites.net';
+// Base URL for API requests
+const API_BASE_URL = '/api';
 
 const authApi = {
   register: async (userData) => {
@@ -13,13 +14,12 @@ const authApi = {
         lastName: userData.lastName
       };
 
+      console.log('Registering with data:', { ...backendUserData, password: '[REDACTED]' });
       const response = await axios.post(`${API_BASE_URL}/auth/register`, backendUserData);
       return response.data;
     } catch (error) {
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Registration failed');
-      }
-      throw new Error('Network error occurred');
+      console.error('Registration error:', error);
+      throw new Error(error.response?.data?.message || 'Registration failed');
     }
   },
 
@@ -30,14 +30,54 @@ const authApi = {
         password: credentials.password
       };
 
+      console.log('Logging in with username:', credentials.email);
       const response = await axios.post(`${API_BASE_URL}/auth/login`, backendCredentials);
+
+      // Store the access token and user role in localStorage
+      if (response.data && response.data.access_token) {
+        localStorage.setItem('token', response.data.access_token);
+        localStorage.setItem('userRole', response.data.role || 'user');
+        localStorage.setItem('userId', response.data.id);
+        console.log('Login successful. Role:', response.data.role);
+      }
+
       return response.data;
     } catch (error) {
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Login failed');
-      }
-      throw new Error('Network error occurred');
+      console.error('Login error:', error);
+      throw new Error(error.response?.data?.message || 'Login failed');
     }
+  },
+
+  logout: () => {
+    console.log('Logging out');
+    localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userId');
+  },
+
+  // Check if current user is authenticated
+  isAuthenticated: () => {
+    const token = localStorage.getItem('token');
+    return token !== null;
+  },
+
+  // Check if current user is an admin
+  isAdmin: () => {
+    return localStorage.getItem('userRole') === 'admin';
+  },
+
+  // Get current auth status (useful for debugging)
+  getAuthStatus: () => {
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('userRole');
+    const userId = localStorage.getItem('userId');
+
+    return {
+      isAuthenticated: !!token,
+      token: token ? `${token.substring(0, 15)}...` : null, // Only show beginning of token for security
+      userRole,
+      userId
+    };
   }
 };
 
