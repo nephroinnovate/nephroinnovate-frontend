@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from 'api/config';
 import {
   Box,
   Button,
@@ -36,14 +37,9 @@ import AddIcon from '@mui/icons-material/Add';
 // Project imports
 import MainCard from 'ui-component/cards/MainCard';
 
-// SUPER SIMPLE DIRECT API IMPLEMENTATION
-// All requests use axios directly
-// Base URL for API requests (auto-proxy in development)
-const API_URL = '/api';
-
 // Create a direct axios instance with the auth token
 const axiosAuth = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   },
