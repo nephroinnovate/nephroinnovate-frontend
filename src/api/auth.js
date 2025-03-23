@@ -1,7 +1,5 @@
 import axios from 'axios';
-
-// Base URL for API requests
-const API_BASE_URL = '/api';
+import { API_BASE_URL } from './config';
 
 const authApi = {
   register: async (userData) => {

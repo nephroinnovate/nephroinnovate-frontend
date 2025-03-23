@@ -1,8 +1,6 @@
 // Simple direct API helper for institutions
 import axios from 'axios';
-
-// Base URL for API requests
-const API_BASE_URL = '/api';
+import { API_BASE_URL } from './config';
 
 // Helper function to make authenticated requests
 const api = {
