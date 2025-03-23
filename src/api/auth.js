@@ -1,11 +1,19 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'https://nephroinnovate-api-ultra-minimal-fpgdfabhc7c9egej.swedencentral-01.azurewebsites.net';
 
 const authApi = {
   register: async (userData) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/register`, userData);
+      const backendUserData = {
+        username: userData.email,
+        email: userData.email,
+        password: userData.password,
+        firstName: userData.firstName,
+        lastName: userData.lastName
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/auth/register`, backendUserData);
       return response.data;
     } catch (error) {
       if (error.response) {
@@ -17,7 +25,12 @@ const authApi = {
 
   login: async (credentials) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, credentials);
+      const backendCredentials = {
+        username: credentials.email,
+        password: credentials.password
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, backendCredentials);
       return response.data;
     } catch (error) {
       if (error.response) {

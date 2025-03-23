@@ -79,7 +79,7 @@ export default function AuthLogin() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -92,8 +92,13 @@ export default function AuthLogin() {
         password: values.password
       });
 
-      // You might want to store the token in localStorage
-      localStorage.setItem('token', response.token);
+      // Store the access token in localStorage
+      localStorage.setItem('token', response.access_token);
+
+      // Store user data if needed
+      if (response.user) {
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
 
       setNotification({
         show: true,
