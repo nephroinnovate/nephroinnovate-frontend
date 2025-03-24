@@ -1,5 +1,5 @@
 // assets
-import { IconDashboard, IconUserCheck, IconSettings, IconUsersGroup, IconBuilding } from '@tabler/icons-react';
+import { IconDashboard, IconUserCheck, IconSettings, IconUsersGroup, IconBuilding, IconHeartRateMonitor } from '@tabler/icons-react';
 
 // constant
 const icons = {
@@ -7,7 +7,8 @@ const icons = {
   IconUserCheck,
   IconSettings,
   IconUsersGroup,
-  IconBuilding
+  IconBuilding,
+  IconHeartRateMonitor
 };
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
@@ -56,6 +57,16 @@ const dashboard = {
       breadcrumbs: false,
       // Admin, institution and patient roles can access
       access: ['admin', 'institution', 'patient']
+    },
+    {
+      id: 'patient-dialysis',
+      title: 'My Dialysis Data',
+      type: 'item',
+      url: '/patients/dialysis-data',
+      icon: icons.IconHeartRateMonitor,
+      breadcrumbs: false,
+      // Only patients can access
+      access: ['patient']
     },
     {
       id: 'settings',

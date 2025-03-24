@@ -24,7 +24,9 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
-  useTheme
+  useTheme,
+  TextField,
+  Grid
 } from '@mui/material';
 
 import MainCard from 'ui-component/cards/MainCard';
@@ -82,6 +84,13 @@ const UserRolesManagement = () => {
     open: false,
     message: '',
     severity: 'success'
+  });
+  const [addUserDialogOpen, setAddUserDialogOpen] = useState(false);
+  const [newUser, setNewUser] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: ''
   });
 
   // Fetch data on component mount
@@ -176,8 +185,67 @@ const UserRolesManagement = () => {
     setAlert({ ...alert, open: false });
   };
 
+  // Open add user dialog
+  const handleOpenAddUserDialog = () => {
+    setNewUser({
+      email: '',
+      password: '',
+      firstName: '',
+      lastName: ''
+    });
+    setAddUserDialogOpen(true);
+  };
+
+  // Close add user dialog
+  const handleCloseAddUserDialog = () => {
+    setAddUserDialogOpen(false);
+  };
+
+  // Handle input change for new user form
+  const handleNewUserInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewUser(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Create new user
+  const handleCreateUser = async () => {
+    setLoading(true);
+    try {
+      // Use the register endpoint to create a new user
+      await axiosAuth.post('/auth/register', {
+        username: newUser.email,
+        email: newUser.email,
+        password: newUser.password,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName
+      });
+
+      showAlert(`User ${newUser.email} created successfully`, 'success');
+      handleCloseAddUserDialog();
+      fetchData(); // Refresh the user list
+    } catch (error) {
+      console.error('Error creating user:', error);
+      showAlert(`Error: ${error.response?.data?.message || error.message}`, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <MainCard title="User Role Management">
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleOpenAddUserDialog}
+        >
+          Add User
+        </Button>
+      </Box>
+
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, mb: 2 }}>
           <CircularProgress />
@@ -323,6 +391,73 @@ const UserRolesManagement = () => {
             disabled={(roleAction !== 'admin' && !selectedEntity) || loading}
           >
             {loading ? <CircularProgress size={24} /> : 'Confirm'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add User Dialog */}
+      <Dialog open={addUserDialogOpen} onClose={handleCloseAddUserDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Add New User</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            Enter the details for the new user.
+          </DialogContentText>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                name="email"
+                label="Email"
+                fullWidth
+                value={newUser.email}
+                onChange={handleNewUserInputChange}
+                margin="normal"
+                required
+                type="email"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="password"
+                label="Password"
+                fullWidth
+                value={newUser.password}
+                onChange={handleNewUserInputChange}
+                margin="normal"
+                required
+                type="password"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="firstName"
+                label="First Name"
+                fullWidth
+                value={newUser.firstName}
+                onChange={handleNewUserInputChange}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="lastName"
+                label="Last Name"
+                fullWidth
+                value={newUser.lastName}
+                onChange={handleNewUserInputChange}
+                margin="normal"
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAddUserDialog} color="primary">Cancel</Button>
+          <Button
+            onClick={handleCreateUser}
+            color="primary"
+            disabled={!newUser.email || !newUser.password || loading}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Create User'}
           </Button>
         </DialogActions>
       </Dialog>

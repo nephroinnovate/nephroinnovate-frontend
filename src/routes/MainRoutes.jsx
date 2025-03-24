@@ -12,6 +12,7 @@ const Settings = Loadable(lazy(() => import('views/dashboard/Settings')));
 
 // patient management
 const PatientManagement = Loadable(lazy(() => import('views/patients/PatientManagement')));
+const PatientDialysisData = Loadable(lazy(() => import('views/patients/PatientDialysisData')));
 
 // home page
 const HomePage = Loadable(lazy(() => import('views/home')));
@@ -27,6 +28,9 @@ const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
+
+// account settings
+const AccountSettings = Loadable(lazy(() => import('views/account/AccountSettings')));
 
 // Admin-only route protection
 const AdminRoute = ({ children }) => {
@@ -134,6 +138,10 @@ const MainRoutes = {
         {
           path: 'manage',
           element: <AuthorizedRoute allowedRoles={['admin', 'institution', 'patient']}><PatientManagement /></AuthorizedRoute>
+        },
+        {
+          path: 'dialysis-data',
+          element: <AuthorizedRoute allowedRoles={['patient']}><PatientDialysisData /></AuthorizedRoute>
         }
       ]
     },
@@ -152,7 +160,16 @@ const MainRoutes = {
     {
       path: '/sample-page',
       element: <DashboardRoute><SamplePage /></DashboardRoute>
-    }
+    },
+    {
+      path: 'account',
+      children: [
+        {
+          path: 'settings',
+          element: <AuthorizedRoute allowedRoles={['admin', 'institution', 'patient']}><AccountSettings /></AuthorizedRoute>
+        }
+      ]
+    },
   ]
 };
 

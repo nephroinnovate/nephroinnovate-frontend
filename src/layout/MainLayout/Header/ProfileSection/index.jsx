@@ -22,6 +22,7 @@ import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 
 // project imports
 import UpgradePlanCard from './UpgradePlanCard';
@@ -29,6 +30,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
 import useConfig from 'hooks/useConfig';
 import authApi from 'api/auth';
+import usersApi from 'api/users';
 
 // assets
 import User1 from 'assets/images/users/user-round.svg';
@@ -43,11 +45,47 @@ export default function ProfileSection() {
   const [sdm, setSdm] = useState(true);
   const [value, setValue] = useState('');
   const [notification, setNotification] = useState(false);
-  const [selectedIndex] = useState(-1);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Get user information
   const userRole = localStorage.getItem('userRole') || 'Guest';
+
+  // Load user profile
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const profile = await usersApi.getCurrentUserProfile();
+        setUserProfile(profile);
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (authApi.isAuthenticated()) {
+      fetchUserProfile();
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  // Generate greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
+  // Handle account settings navigation
+  const handleAccountSettings = () => {
+    navigate('/account/settings');
+    setOpen(false);
+  };
 
   // Handle logout
   const handleLogout = () => {
@@ -76,6 +114,16 @@ export default function ProfileSection() {
     }
 
     setOpen(false);
+  };
+
+  const handleListItemClick = (event, index) => {
+    setSelectedIndex(index);
+
+    if (index === 0) {
+      handleAccountSettings();
+    } else if (index === 2) {
+      handleLogout();
+    }
   };
 
   const prevOpen = useRef(open);
@@ -146,15 +194,21 @@ export default function ProfileSection() {
                   <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
                     <Box sx={{ p: 2, pb: 0 }}>
                       <Stack>
-                        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                          <Typography variant="h4">Good Morning,</Typography>
-                          <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                            Johne Doe
-                          </Typography>
-                        </Stack>
-                        <Typography variant="subtitle2" sx={{ textTransform: 'capitalize' }}>
-                          {userRole}
-                        </Typography>
+                        {loading ? (
+                          <CircularProgress size={24} sx={{ my: 1 }} />
+                        ) : (
+                          <>
+                            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                              <Typography variant="h4">{getGreeting()},</Typography>
+                              <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
+                                {userProfile ? `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim() : 'User'}
+                              </Typography>
+                            </Stack>
+                            <Typography variant="subtitle2" sx={{ textTransform: 'capitalize' }}>
+                              {userRole}
+                            </Typography>
+                          </>
+                        )}
                       </Stack>
                       <OutlinedInput
                         sx={{ width: '100%', pr: 1, pl: 2, my: 2 }}
@@ -234,13 +288,21 @@ export default function ProfileSection() {
                           '& .MuiListItemButton-root': { mt: 0.5 }
                         }}
                       >
-                        <ListItemButton sx={{ borderRadius: `${borderRadius}px` }} selected={selectedIndex === 0}>
+                        <ListItemButton
+                          sx={{ borderRadius: `${borderRadius}px` }}
+                          selected={selectedIndex === 0}
+                          onClick={(event) => handleListItemClick(event, 0)}
+                        >
                           <ListItemIcon>
                             <IconSettings stroke={1.5} size="20px" />
                           </ListItemIcon>
                           <ListItemText primary={<Typography variant="body2">Account Settings</Typography>} />
                         </ListItemButton>
-                        <ListItemButton sx={{ borderRadius: `${borderRadius}px` }} selected={selectedIndex === 1}>
+                        <ListItemButton
+                          sx={{ borderRadius: `${borderRadius}px` }}
+                          selected={selectedIndex === 1}
+                          onClick={(event) => handleListItemClick(event, 1)}
+                        >
                           <ListItemIcon>
                             <IconUser stroke={1.5} size="20px" />
                           </ListItemIcon>
@@ -265,8 +327,8 @@ export default function ProfileSection() {
                         </ListItemButton>
                         <ListItemButton
                           sx={{ borderRadius: `${borderRadius}px` }}
-                          selected={selectedIndex === 4}
-                          onClick={handleLogout}
+                          selected={selectedIndex === 2}
+                          onClick={(event) => handleListItemClick(event, 2)}
                         >
                           <ListItemIcon>
                             <IconLogout stroke={1.5} size="20px" />

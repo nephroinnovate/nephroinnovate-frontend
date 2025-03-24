@@ -112,9 +112,15 @@ export default function AuthLogin() {
         type: 'success'
       });
 
-      // Redirect to dashboard after successful login
+      // Redirect based on user role
       setTimeout(() => {
-        navigate('/dashboard/default');
+        // If patient role, redirect to dialysis data page
+        if (response.role === 'patient') {
+          navigate('/patients/dialysis-data');
+        } else {
+          // Otherwise redirect to dashboard
+          navigate('/dashboard/default');
+        }
       }, 1000);
 
     } catch (error) {

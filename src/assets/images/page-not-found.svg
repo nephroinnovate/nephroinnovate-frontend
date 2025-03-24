@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <!-- Background -->
+  <rect width="500" height="500" fill="#f5f5f5" opacity="0.2" />
+
+  <!-- Decorative elements -->
+  <circle cx="100" cy="100" r="20" fill="#3f51b5" opacity="0.3" />
+  <circle cx="400" cy="150" r="30" fill="#f50057" opacity="0.2" />
+  <circle cx="250" cy="450" r="50" fill="#3f51b5" opacity="0.1" />
+
+  <!-- Error text -->
+  <text x="250" y="180" font-family="Arial" font-size="100" font-weight="bold" fill="#3f51b5" text-anchor="middle">404</text>
+
+  <!-- Confused character -->
+  <g transform="translate(250, 300)">
+    <!-- Head -->
+    <circle cx="0" cy="0" r="60" fill="#3f51b5" />
+
+    <!-- Eyes -->
+    <ellipse cx="-20" cy="-15" rx="10" ry="12" fill="white" />
+    <ellipse cx="20" cy="-15" rx="10" ry="12" fill="white" />
+    <circle cx="-20" cy="-10" r="5" fill="#333" />
+    <circle cx="20" cy="-10" r="5" fill="#333" />
+
+    <!-- Confused mouth -->
+    <path d="M-20,20 Q0,0 20,25" stroke="white" stroke-width="5" fill="none" />
+
+    <!-- Question marks -->
+    <text x="-75" y="-40" font-family="Arial" font-size="40" fill="#f50057" text-anchor="middle">?</text>
+    <text x="75" y="-40" font-family="Arial" font-size="40" fill="#f50057" text-anchor="middle">?</text>
+    <text x="45" y="-70" font-family="Arial" font-size="50" fill="#f50057" text-anchor="middle">?</text>
+    <text x="-40" y="-80" font-family="Arial" font-size="30" fill="#f50057" text-anchor="middle">?</text>
+  </g>
+</svg>

@@ -44,6 +44,72 @@ const usersApi = {
     }
   },
 
+  getUserProfile: async (userId) => {
+    try {
+      const api = getAuthorizedAxios();
+      const response = await api.get(`/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      if (error.response && error.response.status !== 401) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch user profile');
+      }
+      throw new Error('Authentication failed');
+    }
+  },
+
+  getCurrentUserProfile: async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
+
+    try {
+      const api = getAuthorizedAxios();
+      const response = await api.get(`/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching current user profile:', error);
+      if (error.response && error.response.status !== 401) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch current user profile');
+      }
+      throw new Error('Authentication failed');
+    }
+  },
+
+  updateUserProfile: async (userId, userData) => {
+    try {
+      const api = getAuthorizedAxios();
+      const response = await api.patch(`/users/${userId}`, userData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      if (error.response && error.response.status !== 401) {
+        throw new Error(error.response?.data?.message || 'Failed to update user profile');
+      }
+      throw new Error('Authentication failed');
+    }
+  },
+
+  updateCurrentUserProfile: async (userData) => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      throw new Error('No user logged in');
+    }
+
+    try {
+      const api = getAuthorizedAxios();
+      const response = await api.patch(`/users/${userId}`, userData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating current user profile:', error);
+      if (error.response && error.response.status !== 401) {
+        throw new Error(error.response?.data?.message || 'Failed to update user profile');
+      }
+      throw new Error('Authentication failed');
+    }
+  },
+
   makeUserAdmin: async (userId) => {
     try {
       const api = getAuthorizedAxios();
