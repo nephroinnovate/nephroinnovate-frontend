@@ -511,7 +511,7 @@ const PatientDialysisData = () => {
             </Button>
           </Box>
 
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} sx={{ borderRadius: 8 }}>
             <Table sx={{ minWidth: 650 }}>
               <TableHead>
                 <TableRow>
@@ -637,7 +637,7 @@ const PatientDialysisData = () => {
             </Box>
           )}
 
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} sx={{ borderRadius: 8 }}>
             <Table sx={{ minWidth: 650 }}>
               <TableHead>
                 <TableRow>

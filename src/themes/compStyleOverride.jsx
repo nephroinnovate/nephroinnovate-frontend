@@ -18,7 +18,8 @@ export default function componentStyleOverrides(theme, borderRadius, outlinedFil
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: '#242b38'
+          backgroundColor: '#242b38',
+          borderRadius: 8
         }
       }
     },
