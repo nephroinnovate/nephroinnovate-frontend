@@ -42,7 +42,10 @@ export default function ThemeCustomization({ children }) {
   );
 
   const themes = createTheme(themeOptions);
-  themes.components = useMemo(() => componentStyleOverrides(themes, borderRadius, outlinedFilled), [themes, borderRadius, outlinedFilled]);
+  themes.components = useMemo(
+    () => componentStyleOverrides(themes, borderRadius, outlinedFilled),
+    [themes, borderRadius, outlinedFilled]
+  );
 
   return (
     <StyledEngineProvider injectFirst>

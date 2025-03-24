@@ -5,12 +5,14 @@ import Chip from '@mui/material/Chip';
 import Drawer from '@mui/material/Drawer';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
+import { useTheme } from '@mui/material/styles';
 
 // third party
 import PerfectScrollbar from 'react-perfect-scrollbar';
 
 // project imports
 import MenuCard from './MenuCard';
+import DarkModeMenuCard from './DarkModeMenuCard';
 import MenuList from '../MenuList';
 import LogoSection from '../LogoSection';
 import MiniDrawerStyled from './MiniDrawerStyled';
@@ -23,6 +25,7 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 // ==============================|| SIDEBAR DRAWER ||============================== //
 
 function Sidebar() {
+  const theme = useTheme();
   const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
 
   const { menuMaster } = useGetMenuMaster();
@@ -42,6 +45,7 @@ function Sidebar() {
   const drawer = useMemo(() => {
     const drawerContent = (
       <>
+        <DarkModeMenuCard />
         <MenuCard />
         <Stack direction="row" sx={{ justifyContent: 'center', mb: 2 }}>
           <Chip label={import.meta.env.VITE_APP_VERSION} size="small" color="default" />
@@ -83,7 +87,7 @@ function Sidebar() {
               mt: downMD ? 0 : 11,
               zIndex: 1099,
               width: drawerWidth,
-              bgcolor: 'background.default',
+              bgcolor: mode === 'dark' ? '#1a1f2b' : theme.palette.background.default,
               color: 'text.primary',
               borderRight: 'none'
             }

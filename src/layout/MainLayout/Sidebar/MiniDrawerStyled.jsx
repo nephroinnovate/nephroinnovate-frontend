@@ -6,11 +6,13 @@ import Drawer from '@mui/material/Drawer';
 import { drawerWidth } from 'store/constant';
 
 function openedMixin(theme) {
+  const bgColor = theme.palette.mode === 'dark' ? '#1a1f2b' : theme.palette.background.default;
+
   return {
     width: drawerWidth,
     borderRight: 'none',
     zIndex: 1099,
-    background: theme.palette.background.default,
+    background: bgColor,
     overflowX: 'hidden',
     boxShadow: 'none',
     transition: theme.transitions.create('width', {
@@ -21,10 +23,12 @@ function openedMixin(theme) {
 }
 
 function closedMixin(theme) {
+  const bgColor = theme.palette.mode === 'dark' ? '#1a1f2b' : theme.palette.background.default;
+
   return {
     borderRight: 'none',
     zIndex: 1099,
-    background: theme.palette.background.default,
+    background: bgColor,
     overflowX: 'hidden',
     width: 72,
     transition: theme.transitions.create('width', {

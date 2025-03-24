@@ -454,7 +454,7 @@ const PatientDialysisData = () => {
 
           <Grid container spacing={3} sx={{ mb: 3 }}>
             <Grid item xs={12} md={6} lg={3}>
-              <Card sx={{ bgcolor: theme.palette.primary.light }}>
+              <Card sx={{ bgcolor: theme.palette.primary.light, borderRadius: 8 }}>
                 <CardContent>
                   <Typography variant="h6" color="textSecondary">Medical Record #</Typography>
                   <Typography variant="h3">{patient.medical_record_number || 'N/A'}</Typography>
@@ -462,7 +462,7 @@ const PatientDialysisData = () => {
               </Card>
             </Grid>
             <Grid item xs={12} md={6} lg={3}>
-              <Card sx={{ bgcolor: theme.palette.secondary.light }}>
+              <Card sx={{ bgcolor: theme.palette.secondary.light, borderRadius: 8 }}>
                 <CardContent>
                   <Typography variant="h6" color="textSecondary">Diagnosis</Typography>
                   <Typography variant="h5">{patient.primary_diagnosis || 'N/A'}</Typography>
@@ -470,7 +470,7 @@ const PatientDialysisData = () => {
               </Card>
             </Grid>
             <Grid item xs={12} md={6} lg={3}>
-              <Card sx={{ bgcolor: theme.palette.success.light }}>
+              <Card sx={{ bgcolor: theme.palette.success.light, borderRadius: 8 }}>
                 <CardContent>
                   <Typography variant="h6" color="textSecondary">Dialysis Start</Typography>
                   <Typography variant="h4">{formatDate(patient.dialysis_start_date)}</Typography>
@@ -478,7 +478,7 @@ const PatientDialysisData = () => {
               </Card>
             </Grid>
             <Grid item xs={12} md={6} lg={3}>
-              <Card sx={{ bgcolor: theme.palette.warning.light }}>
+              <Card sx={{ bgcolor: theme.palette.warning.light, borderRadius: 8 }}>
                 <CardContent>
                   <Typography variant="h6" color="textSecondary">Total Sessions</Typography>
                   <Typography variant="h3">{sessions.length}</Typography>
@@ -1026,7 +1026,7 @@ const PatientDialysisData = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2 }}>
+                <Paper sx={{ p: 2, borderRadius: 8 }}>
                   <Typography variant="h6" color="primary" gutterBottom>
                     Basic Information
                   </Typography>
@@ -1045,7 +1045,7 @@ const PatientDialysisData = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2 }}>
+                <Paper sx={{ p: 2, borderRadius: 8 }}>
                   <Typography variant="h6" color="primary" gutterBottom>
                     Weight Information
                   </Typography>
@@ -1068,7 +1068,7 @@ const PatientDialysisData = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2 }}>
+                <Paper sx={{ p: 2, borderRadius: 8 }}>
                   <Typography variant="h6" color="primary" gutterBottom>
                     Flow Rates
                   </Typography>
@@ -1084,7 +1084,7 @@ const PatientDialysisData = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2 }}>
+                <Paper sx={{ p: 2, borderRadius: 8 }}>
                   <Typography variant="h6" color="primary" gutterBottom>
                     Complications
                   </Typography>
@@ -1097,7 +1097,7 @@ const PatientDialysisData = () => {
               </Grid>
               {sessionAssociatedLabs.length > 0 && (
                 <Grid item xs={12}>
-                  <Paper sx={{ p: 2 }}>
+                  <Paper sx={{ p: 2, borderRadius: 8 }}>
                     <Typography variant="h6" color="primary" gutterBottom>
                       Associated Laboratory Results
                     </Typography>
@@ -1134,7 +1134,7 @@ const PatientDialysisData = () => {
               )}
               {sessionAssociatedLabs.length === 0 && (
                 <Grid item xs={12}>
-                  <Paper sx={{ p: 2 }}>
+                  <Paper sx={{ p: 2, borderRadius: 8 }}>
                     <Typography variant="h6" color="primary" gutterBottom>
                       Laboratory Results
                     </Typography>

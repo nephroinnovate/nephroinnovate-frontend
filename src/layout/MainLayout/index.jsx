@@ -24,6 +24,7 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
 export default function MainLayout() {
   const theme = useTheme();
+  const mode = theme.palette.mode;
   const downMD = useMediaQuery(theme.breakpoints.down('md'));
 
   const { borderRadius, miniDrawer } = useConfig();
@@ -38,14 +39,23 @@ export default function MainLayout() {
     downMD && handlerDrawerOpen(false);
   }, [downMD]);
 
-  // horizontal menu-list bar : drawer
-
   if (menuMasterLoading) return <Loader />;
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      {/* header */}
-      <AppBar enableColorOnDark position="fixed" color="inherit" elevation={0} sx={{ bgcolor: 'background.default' }}>
+    <Box sx={{
+      display: 'flex',
+      bgcolor: mode === 'dark' ? '#121212' : 'inherit'
+    }}>
+      <AppBar
+        enableColorOnDark
+        position="fixed"
+        color="inherit"
+        elevation={0}
+        sx={{
+          bgcolor: mode === 'dark' ? '#242b38' : theme.palette.background.default,
+          color: mode === 'dark' ? '#ffffff' : 'text.primary'
+        }}
+      >
         <Toolbar sx={{ p: 2 }}>
           <Header />
         </Toolbar>

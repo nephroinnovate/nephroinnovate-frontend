@@ -2,9 +2,88 @@
 import componentsOverrides from './overrides';
 
 export default function componentStyleOverrides(theme, borderRadius, outlinedFilled) {
-  const bgColor = theme.palette.grey[50];
-  const menuSelectedBack = theme.palette.secondary.light;
-  const menuSelected = theme.palette.secondary.dark;
+  const mode = theme.palette.mode;
+  const bgColor = mode === 'dark' ? theme.palette.background.paper : theme.palette.grey[50];
+  const menuSelectedBack = mode === 'dark' ? theme.palette.action?.selected : theme.palette.secondary.light;
+  const menuSelected = mode === 'dark' ? theme.palette.primary.main : theme.palette.secondary.dark;
+
+  const darkModeStyles = mode === 'dark' ? {
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#242b38'
+        }
+      }
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#242b38'
+        }
+      }
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#242b38',
+          borderRadius: 8
+        }
+      }
+    },
+    MuiCardHeader: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#2a3142',
+          color: theme.palette.text.primary
+        }
+      }
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderColor: 'rgba(255, 255, 255, 0.15)',
+          '&.MuiTableCell-head': {
+            backgroundColor: '#2a3142',
+            color: '#ffffff',
+            fontWeight: 600
+          }
+        }
+      }
+    },
+    MuiTableRow: {
+      styleOverrides: {
+        root: {
+          '&:nth-of-type(odd)': {
+            backgroundColor: '#1f2531'
+          },
+          '&:hover': {
+            backgroundColor: '#2a3142'
+          }
+        }
+      }
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#242b38'
+        }
+      }
+    },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#242b38'
+        }
+      }
+    },
+    Paper: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#242b38'
+        }
+      }
+    }
+  } : {};
 
   return {
     MuiButton: {
@@ -24,6 +103,13 @@ export default function componentStyleOverrides(theme, borderRadius, outlinedFil
         }
       }
     },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8
+        }
+      }
+    },
     MuiPaper: {
       defaultProps: {
         elevation: 0
@@ -40,7 +126,6 @@ export default function componentStyleOverrides(theme, borderRadius, outlinedFil
     MuiCardHeader: {
       styleOverrides: {
         root: {
-          color: theme.palette.text.dark,
           padding: '24px'
         },
         title: {
@@ -109,7 +194,10 @@ export default function componentStyleOverrides(theme, borderRadius, outlinedFil
     MuiListItemText: {
       styleOverrides: {
         primary: {
-          color: theme.palette.text.dark
+          color: mode === 'dark' ? theme.palette.text.primary : theme.palette.text.dark
+        },
+        secondary: {
+          color: mode === 'dark' ? theme.palette.text.secondary : theme.palette.text.secondary
         }
       }
     },
@@ -270,18 +358,21 @@ export default function componentStyleOverrides(theme, borderRadius, outlinedFil
     MuiDialog: {
       styleOverrides: {
         paper: {
-          padding: '12px 0 12px 0'
+          padding: '12px 0 12px 0',
+          backgroundColor: mode === 'dark' ? '#242b38' : theme.palette.background.paper,
+          borderRadius: 8
         }
       }
     },
     MuiTableCell: {
       styleOverrides: {
         root: {
-          borderColor: theme.palette.grey[200],
+          borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : theme.palette.grey[200],
           '&.MuiTableCell-head': {
             fontSize: '0.875rem',
-            color: theme.palette.grey[900],
-            fontWeight: 500
+            color: mode === 'dark' ? theme.palette.text.primary : theme.palette.grey[900],
+            fontWeight: 600,
+            backgroundColor: mode === 'dark' ? '#2a3142' : 'inherit'
           }
         }
       }
@@ -333,6 +424,17 @@ export default function componentStyleOverrides(theme, borderRadius, outlinedFil
           '& .MuiFormControl-root>.MuiInputBase-root': {
             backgroundColor: `${theme.palette.background.default} !important`,
             borderColor: `${theme.palette.divider} !important`
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            backgroundColor: mode === 'dark' ? '#2a3142' : 'inherit',
+            borderBottomColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : theme.palette.divider
+          },
+          '& .MuiDataGrid-footerContainer': {
+            backgroundColor: mode === 'dark' ? '#2a3142' : 'inherit',
+            borderTopColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.15)' : theme.palette.divider
+          },
+          '& .MuiTablePagination-root': {
+            color: mode === 'dark' ? '#ffffff' : 'inherit'
           }
         },
         withBorderColor: {
@@ -381,6 +483,33 @@ export default function componentStyleOverrides(theme, borderRadius, outlinedFil
         }
       }
     },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: mode === 'dark' ? '#242b38' : theme.palette.background.paper
+        }
+      }
+    },
+    MuiTableRow: {
+      styleOverrides: {
+        root: {
+          '&:nth-of-type(odd)': {
+            backgroundColor: 'inherit'
+          },
+          '&:hover': {
+            backgroundColor: 'inherit'
+          }
+        }
+      }
+    },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          backgroundColor: mode === 'dark' ? '#242b38' : 'inherit'
+        }
+      }
+    },
+    ...darkModeStyles,
     ...componentsOverrides(theme)
   };
 }

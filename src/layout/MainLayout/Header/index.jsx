@@ -9,6 +9,7 @@ import LogoSection from '../LogoSection';
 import SearchSection from './SearchSection';
 import ProfileSection from './ProfileSection';
 import NotificationSection from './NotificationSection';
+import DarkModeToggle from './DarkModeToggle';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
@@ -55,10 +56,12 @@ export default function Header() {
       {/* header search */}
       <SearchSection />
       <Box sx={{ flexGrow: 1 }} />
-      <Box sx={{ flexGrow: 1 }} />
 
       {/* notification */}
       <NotificationSection />
+
+      {/* dark mode toggle */}
+      <DarkModeToggle />
 
       {/* profile */}
       <ProfileSection />

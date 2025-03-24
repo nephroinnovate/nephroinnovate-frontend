@@ -26,6 +26,7 @@ import {
   Snackbar,
   Alert
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 // Icons
 import EditIcon from '@mui/icons-material/Edit';
@@ -37,6 +38,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import patientsApi from 'api/patients';
 
 const PatientManagement = () => {
+  const theme = useTheme();
   // States for patients data and UI
   const [patients, setPatients] = useState([]);
   const [institutions, setInstitutions] = useState([]);
@@ -238,7 +240,12 @@ const PatientManagement = () => {
   };
 
   return (
-    <MainCard title="Patient Management">
+    <MainCard
+      title="Patient Management"
+      sx={{
+        bgcolor: theme.palette.mode === 'dark' ? '#1e1e2f' : 'inherit'
+      }}
+    >
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
           <CircularProgress />
@@ -260,7 +267,13 @@ const PatientManagement = () => {
       )}
 
       {/* Patients table */}
-      <TableContainer component={Paper}>
+      <TableContainer
+        component={Paper}
+        sx={{
+          bgcolor: theme.palette.background.paper,
+          boxShadow: 'none'
+        }}
+      >
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
@@ -311,7 +324,15 @@ const PatientManagement = () => {
       </TableContainer>
 
       {/* Patient Form Dialog */}
-      <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth>
+      <Dialog
+        open={openForm}
+        onClose={handleCloseForm}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { bgcolor: theme.palette.mode === 'dark' ? '#242b38' : theme.palette.background.paper }
+        }}
+      >
         <DialogTitle>
           {selectedPatient ? 'Edit Patient' : 'Add New Patient'}
         </DialogTitle>
@@ -469,7 +490,13 @@ const PatientManagement = () => {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={openDelete} onClose={handleCloseDelete}>
+      <Dialog
+        open={openDelete}
+        onClose={handleCloseDelete}
+        PaperProps={{
+          sx: { bgcolor: theme.palette.mode === 'dark' ? '#242b38' : theme.palette.background.paper }
+        }}
+      >
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <DialogContentText>
