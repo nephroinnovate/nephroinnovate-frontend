@@ -6,6 +6,7 @@ import Drawer from '@mui/material/Drawer';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material/styles';
+import Avatar from '@mui/material/Avatar';
 
 // third party
 import PerfectScrollbar from 'react-perfect-scrollbar';
@@ -22,6 +23,9 @@ import { drawerWidth } from 'store/constant';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
+// assets
+import { IconMenu2 } from '@tabler/icons-react';
+
 // ==============================|| SIDEBAR DRAWER ||============================== //
 
 function Sidebar() {
@@ -35,11 +39,33 @@ function Sidebar() {
 
   const logo = useMemo(
     () => (
-      <Box sx={{ display: 'flex', p: 2 }}>
-        <LogoSection />
+      <Box sx={{ display: 'flex', p: 2, justifyContent: drawerOpen ? 'flex-start' : 'center' }}>
+        {drawerOpen ? (
+          <LogoSection />
+        ) : (
+          <Avatar
+            variant="rounded"
+            sx={{
+              ...theme.typography.commonAvatar,
+              ...theme.typography.mediumAvatar,
+              overflow: 'hidden',
+              bgcolor: 'secondary.light',
+              color: 'secondary.dark',
+              '&:hover': {
+                bgcolor: 'secondary.dark',
+                color: 'secondary.light'
+              },
+              display: { xs: 'none', md: 'flex' }
+            }}
+            onClick={() => handlerDrawerOpen(!drawerOpen)}
+            color="inherit"
+          >
+            <IconMenu2 stroke={1.5} size="20px" />
+          </Avatar>
+        )}
       </Box>
     ),
-    []
+    [drawerOpen, theme.typography]
   );
 
   const drawer = useMemo(() => {

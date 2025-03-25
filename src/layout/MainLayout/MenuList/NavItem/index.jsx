@@ -55,7 +55,9 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
   useEffect(() => {
     compareSize();
     window.addEventListener('resize', compareSize);
-    window.removeEventListener('resize', compareSize);
+    return () => {
+      window.removeEventListener('resize', compareSize);
+    };
   }, []);
 
   const Icon = item?.icon;
