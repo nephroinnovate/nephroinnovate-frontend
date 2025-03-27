@@ -439,7 +439,7 @@ const PatientDialysisData = () => {
   };
 
   return (
-    <MainCard title="My Dialysis Data">
+    <MainCard title="My Dialysis Data" sx={{ borderRadius: 8, boxShadow: theme.shadows[8] }}>
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
           <CircularProgress />
@@ -448,40 +448,81 @@ const PatientDialysisData = () => {
 
       {patient && (
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h3" gutterBottom>
+          <Typography variant="h3" gutterBottom sx={{ 
+            fontWeight: 600, 
+            color: theme.palette.primary.dark,
+            borderBottom: `2px solid ${theme.palette.primary.light}`,
+            pb: 1
+          }}>
             Welcome, {patient.first_name} {patient.last_name}
           </Typography>
 
           <Grid container spacing={3} sx={{ mb: 3 }}>
             <Grid item xs={12} md={6} lg={3}>
-              <Card sx={{ bgcolor: theme.palette.primary.light, borderRadius: 8 }}>
+              <Card sx={{ 
+                bgcolor: theme.palette.primary.light, 
+                borderRadius: 4,
+                boxShadow: theme.shadows[4],
+                transition: 'transform 0.3s, box-shadow 0.3s',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: theme.shadows[8],
+                }
+              }}>
                 <CardContent>
-                  <Typography variant="h6" color="textSecondary">Medical Record #</Typography>
-                  <Typography variant="h3">{patient.medical_record_number || 'N/A'}</Typography>
+                  <Typography variant="h6" color="textSecondary" sx={{ opacity: 0.8 }}>Medical Record #</Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 700 }}>{patient.medical_record_number || 'N/A'}</Typography>
                 </CardContent>
               </Card>
             </Grid>
             <Grid item xs={12} md={6} lg={3}>
-              <Card sx={{ bgcolor: theme.palette.secondary.light, borderRadius: 8 }}>
+              <Card sx={{ 
+                bgcolor: theme.palette.secondary.light, 
+                borderRadius: 4,
+                boxShadow: theme.shadows[4],
+                transition: 'transform 0.3s, box-shadow 0.3s',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: theme.shadows[8],
+                }
+              }}>
                 <CardContent>
-                  <Typography variant="h6" color="textSecondary">Diagnosis</Typography>
-                  <Typography variant="h5">{patient.primary_diagnosis || 'N/A'}</Typography>
+                  <Typography variant="h6" color="textSecondary" sx={{ opacity: 0.8 }}>Diagnosis</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700 }}>{patient.primary_diagnosis || 'N/A'}</Typography>
                 </CardContent>
               </Card>
             </Grid>
             <Grid item xs={12} md={6} lg={3}>
-              <Card sx={{ bgcolor: theme.palette.success.light, borderRadius: 8 }}>
+              <Card sx={{ 
+                bgcolor: theme.palette.success.light, 
+                borderRadius: 4,
+                boxShadow: theme.shadows[4],
+                transition: 'transform 0.3s, box-shadow 0.3s',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: theme.shadows[8],
+                }
+              }}>
                 <CardContent>
-                  <Typography variant="h6" color="textSecondary">Dialysis Start</Typography>
-                  <Typography variant="h4">{formatDate(patient.dialysis_start_date)}</Typography>
+                  <Typography variant="h6" color="textSecondary" sx={{ opacity: 0.8 }}>Dialysis Start</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>{formatDate(patient.dialysis_start_date)}</Typography>
                 </CardContent>
               </Card>
             </Grid>
             <Grid item xs={12} md={6} lg={3}>
-              <Card sx={{ bgcolor: theme.palette.warning.light, borderRadius: 8 }}>
+              <Card sx={{ 
+                bgcolor: theme.palette.warning.light, 
+                borderRadius: 4,
+                boxShadow: theme.shadows[4],
+                transition: 'transform 0.3s, box-shadow 0.3s',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: theme.shadows[8],
+                }
+              }}>
                 <CardContent>
-                  <Typography variant="h6" color="textSecondary">Total Sessions</Typography>
-                  <Typography variant="h3">{sessions.length}</Typography>
+                  <Typography variant="h6" color="textSecondary" sx={{ opacity: 0.8 }}>Total Sessions</Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 700 }}>{sessions.length}</Typography>
                 </CardContent>
               </Card>
             </Grid>
@@ -489,8 +530,30 @@ const PatientDialysisData = () => {
         </Box>
       )}
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={tabValue} onChange={handleTabChange} aria-label="dialysis data tabs">
+      <Box sx={{ 
+        borderBottom: 1, 
+        borderColor: 'divider', 
+        mb: 3,
+        '& .MuiTab-root': {
+          minHeight: 64,
+          fontWeight: 600
+        },
+        '& .Mui-selected': {
+          color: theme.palette.primary.main,
+          fontWeight: 700
+        }
+      }}>
+        <Tabs 
+          value={tabValue} 
+          onChange={handleTabChange} 
+          aria-label="dialysis data tabs"
+          sx={{ 
+            '& .MuiTabs-indicator': { 
+              height: 3,
+              borderRadius: 1.5
+            }
+          }}
+        >
           <Tab label="Sessions" icon={<AssessmentIcon />} iconPosition="start" />
           <Tab label="Weight Trends" icon={<BarChartIcon />} iconPosition="start" />
           <Tab label="Laboratory Results" icon={<AssessmentIcon />} iconPosition="start" />
@@ -506,24 +569,37 @@ const PatientDialysisData = () => {
               color="primary"
               startIcon={<AddIcon />}
               onClick={() => handleOpenSessionForm()}
+              sx={{ 
+                borderRadius: 8,
+                px: 3,
+                py: 1,
+                boxShadow: theme.shadows[4],
+                '&:hover': {
+                  boxShadow: theme.shadows[8]
+                }
+              }}
             >
               Add New Session
             </Button>
           </Box>
 
-          <TableContainer component={Paper} sx={{ borderRadius: 8 }}>
+          <TableContainer component={Paper} sx={{ 
+            borderRadius: 4, 
+            boxShadow: theme.shadows[4],
+            overflow: 'hidden'
+          }}>
             <Table sx={{ minWidth: 650 }}>
-              <TableHead>
+              <TableHead sx={{ bgcolor: theme.palette.primary.light }}>
                 <TableRow>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Duration (min)</TableCell>
-                  <TableCell>Pre Weight (kg)</TableCell>
-                  <TableCell>Post Weight (kg)</TableCell>
-                  <TableCell>Blood Flow Rate</TableCell>
-                  <TableCell>Dialysate Flow Rate</TableCell>
-                  <TableCell>Complications</TableCell>
-                  <TableCell>Staff</TableCell>
-                  <TableCell>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Date</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Duration (min)</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Pre Weight (kg)</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Post Weight (kg)</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Blood Flow Rate</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Dialysate Flow Rate</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Complications</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Staff</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -531,8 +607,14 @@ const PatientDialysisData = () => {
                   sessions
                     .slice()
                     .sort((a, b) => new Date(b.session_date) - new Date(a.session_date))
-                    .map((session) => (
-                    <TableRow key={session.id}>
+                    .map((session, index) => (
+                    <TableRow 
+                      key={session.id} 
+                      sx={{ 
+                        '&:nth-of-type(odd)': { bgcolor: theme.palette.action.hover },
+                        '&:hover': { bgcolor: theme.palette.action.selected }
+                      }}
+                    >
                       <TableCell>{formatDate(session.session_date)}</TableCell>
                       <TableCell>{session.duration_minutes || '-'}</TableCell>
                       <TableCell>{session.pre_weight || '-'}</TableCell>
@@ -542,13 +624,43 @@ const PatientDialysisData = () => {
                       <TableCell>{session.complications || '-'}</TableCell>
                       <TableCell>{session.attending_staff || '-'}</TableCell>
                       <TableCell>
-                        <IconButton color="primary" onClick={() => handleOpenSessionForm(session)}>
+                        <IconButton 
+                          color="primary" 
+                          onClick={() => handleOpenSessionForm(session)}
+                          sx={{ 
+                            '&:hover': { 
+                              bgcolor: theme.palette.primary.lighter,
+                              transform: 'scale(1.1)'
+                            },
+                            transition: 'all 0.2s'
+                          }}
+                        >
                           <EditIcon />
                         </IconButton>
-                        <IconButton color="error" onClick={() => handleDeleteDialogOpen(session)}>
+                        <IconButton 
+                          color="error" 
+                          onClick={() => handleDeleteDialogOpen(session)}
+                          sx={{ 
+                            '&:hover': { 
+                              bgcolor: theme.palette.error.lighter,
+                              transform: 'scale(1.1)'
+                            },
+                            transition: 'all 0.2s'
+                          }}
+                        >
                           <DeleteIcon />
                         </IconButton>
-                        <IconButton color="info" onClick={() => handleViewSessionDetails(session)}>
+                        <IconButton 
+                          color="info" 
+                          onClick={() => handleViewSessionDetails(session)}
+                          sx={{ 
+                            '&:hover': { 
+                              bgcolor: theme.palette.info.lighter,
+                              transform: 'scale(1.1)'
+                            },
+                            transition: 'all 0.2s'
+                          }}
+                        >
                           <AssessmentIcon />
                         </IconButton>
                       </TableCell>
@@ -556,7 +668,7 @@ const PatientDialysisData = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} align="center">
+                    <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                       <Typography variant="body1">
                         {loading ? 'Loading sessions...' : 'No dialysis sessions found'}
                       </Typography>
@@ -571,26 +683,70 @@ const PatientDialysisData = () => {
 
       {/* Weight Trends Tab */}
       {tabValue === 1 && (
-        <Box sx={{ height: 500 }}>
+        <Box sx={{ 
+          height: 500, 
+          p: 3, 
+          bgcolor: '#f5f5f5', 
+          borderRadius: 4,
+          boxShadow: theme.shadows[4]
+        }}>
           {sessions.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={prepareWeightChartData()}
                 margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" angle={-45} textAnchor="end" height={70} />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="preWeight" name="Pre-Dialysis Weight (kg)" stroke={theme.palette.primary.main} activeDot={{ r: 8 }} />
-                <Line type="monotone" dataKey="postWeight" name="Post-Dialysis Weight (kg)" stroke={theme.palette.secondary.main} />
-                <Line type="monotone" dataKey="weightLoss" name="Weight Loss (kg)" stroke={theme.palette.error.main} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                <XAxis 
+                  dataKey="date" 
+                  angle={-45} 
+                  textAnchor="end" 
+                  height={70} 
+                  tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+                />
+                <YAxis tick={{ fill: theme.palette.text.secondary, fontSize: 12 }} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    borderRadius: 8,
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                    border: 'none'
+                  }} 
+                />
+                <Legend 
+                  wrapperStyle={{ paddingTop: 20 }}
+                  iconType="circle"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="preWeight" 
+                  name="Pre-Dialysis Weight (kg)" 
+                  stroke={theme.palette.primary.main} 
+                  strokeWidth={3}
+                  dot={{ r: 6, strokeWidth: 2 }}
+                  activeDot={{ r: 8, stroke: theme.palette.primary.dark }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="postWeight" 
+                  name="Post-Dialysis Weight (kg)" 
+                  stroke={theme.palette.secondary.main} 
+                  strokeWidth={3}
+                  dot={{ r: 6, strokeWidth: 2 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="weightLoss" 
+                  name="Weight Loss (kg)" 
+                  stroke={theme.palette.error.main} 
+                  strokeWidth={3}
+                  dot={{ r: 6, strokeWidth: 2 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           ) : (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <Typography variant="h4">
+              <Typography variant="h4" sx={{ color: theme.palette.text.secondary }}>
                 {loading ? 'Loading data...' : 'No sessions available to display chart'}
               </Typography>
             </Box>
@@ -607,6 +763,15 @@ const PatientDialysisData = () => {
               color="primary"
               startIcon={<AddIcon />}
               onClick={() => handleOpenLabResultForm()}
+              sx={{ 
+                borderRadius: 8,
+                px: 3,
+                py: 1,
+                boxShadow: theme.shadows[4],
+                '&:hover': {
+                  boxShadow: theme.shadows[8]
+                }
+              }}
             >
               Add New Lab Result
             </Button>
@@ -614,42 +779,78 @@ const PatientDialysisData = () => {
 
           {/* Lab Results Chart */}
           {labResults.length > 0 && (
-            <Box sx={{ height: 300, mb: 4 }}>
-              <Typography variant="h4" sx={{ mb: 2 }}>Lab Results Trends</Typography>
+            <Box sx={{ 
+              height: 300, 
+              mb: 4, 
+              p: 3, 
+              bgcolor: '#f5f5f5',
+              borderRadius: 4,
+              boxShadow: theme.shadows[4]
+            }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  mb: 2, 
+                  fontWeight: 600,
+                  color: theme.palette.primary.dark
+                }}
+              >
+                Lab Results Trends
+              </Typography>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={prepareLabChartData()}
                   margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" angle={-45} textAnchor="end" height={70} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="hemoglobin" name="Hemoglobin (g/dL)" stroke="#ff0000" activeDot={{ r: 8 }} />
-                  <Line type="monotone" dataKey="hematocrit" name="Hematocrit (scaled)" stroke="#bf00ff" />
-                  <Line type="monotone" dataKey="potassium" name="Potassium (mmol/L)" stroke="#00ff00" />
-                  <Line type="monotone" dataKey="creatinine" name="Creatinine (mg/dL)" stroke="#0000ff" />
-                  <Line type="monotone" dataKey="urea" name="Urea (scaled)" stroke="#ff8c00" />
-                  <Line type="monotone" dataKey="kt_v" name="Kt/V" stroke="#00bfff" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                  <XAxis 
+                    dataKey="date" 
+                    angle={-45} 
+                    textAnchor="end" 
+                    height={70}
+                    tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+                  />
+                  <YAxis tick={{ fill: theme.palette.text.secondary, fontSize: 12 }} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#fff', 
+                      borderRadius: 8,
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                      border: 'none'
+                    }}
+                  />
+                  <Legend 
+                    wrapperStyle={{ paddingTop: 20 }}
+                    iconType="circle"
+                  />
+                  <Line type="monotone" dataKey="hemoglobin" name="Hemoglobin (g/dL)" stroke="#ff0000" strokeWidth={2} activeDot={{ r: 8 }} />
+                  <Line type="monotone" dataKey="hematocrit" name="Hematocrit (scaled)" stroke="#bf00ff" strokeWidth={2} />
+                  <Line type="monotone" dataKey="potassium" name="Potassium (mmol/L)" stroke="#00ff00" strokeWidth={2} />
+                  <Line type="monotone" dataKey="creatinine" name="Creatinine (mg/dL)" stroke="#0000ff" strokeWidth={2} />
+                  <Line type="monotone" dataKey="urea" name="Urea (scaled)" stroke="#ff8c00" strokeWidth={2} />
+                  <Line type="monotone" dataKey="kt_v" name="Kt/V" stroke="#00bfff" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </Box>
           )}
 
-          <TableContainer component={Paper} sx={{ borderRadius: 8 }}>
+          <TableContainer component={Paper} sx={{ 
+            borderRadius: 4, 
+            boxShadow: theme.shadows[4],
+            overflow: 'hidden'
+          }}>
             <Table sx={{ minWidth: 650 }}>
-              <TableHead>
+              <TableHead sx={{ bgcolor: theme.palette.primary.light }}>
                 <TableRow>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Session Date</TableCell>
-                  <TableCell>Hemoglobin (g/dL)</TableCell>
-                  <TableCell>Hematocrit (%)</TableCell>
-                  <TableCell>Potassium (mmol/L)</TableCell>
-                  <TableCell>Creatinine (mg/dL)</TableCell>
-                  <TableCell>Urea (mg/dL)</TableCell>
-                  <TableCell>Kt/V</TableCell>
-                  <TableCell>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Date</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Session Date</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Hemoglobin (g/dL)</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Hematocrit (%)</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Potassium (mmol/L)</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Creatinine (mg/dL)</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Urea (mg/dL)</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Kt/V</TableCell>
+                  <TableCell sx={{ fontWeight: 700, py: 2 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -660,7 +861,13 @@ const PatientDialysisData = () => {
                     .map((result) => {
                       const relatedSession = sessions.find(s => s.id === result.hemodialysis_session_id) || {};
                       return (
-                        <TableRow key={result.id}>
+                        <TableRow 
+                          key={result.id}
+                          sx={{ 
+                            '&:nth-of-type(odd)': { bgcolor: theme.palette.action.hover },
+                            '&:hover': { bgcolor: theme.palette.action.selected }
+                          }}
+                        >
                           <TableCell>{formatDate(result.test_date)}</TableCell>
                           <TableCell>{formatDate(relatedSession.session_date)}</TableCell>
                           <TableCell>{result.hemoglobin || '-'}</TableCell>
@@ -670,10 +877,30 @@ const PatientDialysisData = () => {
                           <TableCell>{result.urea || '-'}</TableCell>
                           <TableCell>{result.kt_v || '-'}</TableCell>
                           <TableCell>
-                            <IconButton color="primary" onClick={() => handleOpenLabResultForm(result)}>
+                            <IconButton 
+                              color="primary" 
+                              onClick={() => handleOpenLabResultForm(result)}
+                              sx={{ 
+                                '&:hover': { 
+                                  bgcolor: theme.palette.primary.lighter,
+                                  transform: 'scale(1.1)'
+                                },
+                                transition: 'all 0.2s'
+                              }}
+                            >
                               <EditIcon />
                             </IconButton>
-                            <IconButton color="error" onClick={() => handleDeleteLabDialogOpen(result)}>
+                            <IconButton 
+                              color="error" 
+                              onClick={() => handleDeleteLabDialogOpen(result)}
+                              sx={{ 
+                                '&:hover': { 
+                                  bgcolor: theme.palette.error.lighter,
+                                  transform: 'scale(1.1)'
+                                },
+                                transition: 'all 0.2s'
+                              }}
+                            >
                               <DeleteIcon />
                             </IconButton>
                           </TableCell>
@@ -682,7 +909,7 @@ const PatientDialysisData = () => {
                     })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} align="center">
+                    <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                       <Typography variant="body1">
                         {loading ? 'Loading laboratory results...' : 'No laboratory results found'}
                       </Typography>
@@ -696,12 +923,29 @@ const PatientDialysisData = () => {
       )}
 
       {/* Session Form Dialog */}
-      <Dialog open={sessionFormOpen} onClose={handleCloseSessionForm} maxWidth="md" fullWidth>
-        <DialogTitle>
+      <Dialog 
+        open={sessionFormOpen} 
+        onClose={handleCloseSessionForm} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: theme.shadows[10]
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          bgcolor: theme.palette.primary.light,
+          color: theme.palette.primary.dark,
+          py: 2,
+          fontWeight: 700,
+          fontSize: '1.5rem'
+        }}>
           {selectedSession ? 'Edit Dialysis Session' : 'Add New Dialysis Session'}
         </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+        <DialogContent sx={{ p: 3, mt: 2 }}>
+          <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <TextField
                 name="session_date"
@@ -712,6 +956,7 @@ const PatientDialysisData = () => {
                 fullWidth
                 InputLabelProps={{ shrink: true }}
                 required
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -722,6 +967,7 @@ const PatientDialysisData = () => {
                 value={formData.duration_minutes}
                 onChange={handleFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -733,6 +979,7 @@ const PatientDialysisData = () => {
                 value={formData.pre_weight}
                 onChange={handleFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -744,6 +991,7 @@ const PatientDialysisData = () => {
                 value={formData.post_weight}
                 onChange={handleFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -754,6 +1002,7 @@ const PatientDialysisData = () => {
                 value={formData.blood_flow_rate}
                 onChange={handleFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -764,6 +1013,7 @@ const PatientDialysisData = () => {
                 value={formData.dialysate_flow_rate}
                 onChange={handleFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12}>
@@ -775,6 +1025,7 @@ const PatientDialysisData = () => {
                 fullWidth
                 multiline
                 rows={2}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12}>
@@ -784,16 +1035,23 @@ const PatientDialysisData = () => {
                 value={formData.attending_staff}
                 onChange={handleFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             {!selectedSession && (
-              <Box sx={{ mt: 2 }}>
+              <Box sx={{ mt: 2, ml: 3 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
                       checked={createLabWithSession}
                       onChange={(e) => setCreateLabWithSession(e.target.checked)}
                       name="createLabWithSession"
+                      sx={{ 
+                        color: theme.palette.primary.main,
+                        '&.Mui-checked': {
+                          color: theme.palette.primary.main
+                        }
+                      }}
                     />
                   }
                   label="Add laboratory results for this session"
@@ -802,13 +1060,29 @@ const PatientDialysisData = () => {
             )}
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseSessionForm}>Cancel</Button>
+        <DialogActions sx={{ px: 3, py: 2, bgcolor: '#f5f5f5' }}>
+          <Button 
+            onClick={handleCloseSessionForm}
+            sx={{ 
+              borderRadius: 2,
+              px: 3
+            }}
+          >
+            Cancel
+          </Button>
           <Button
             onClick={handleSubmitSession}
             variant="contained"
             color="primary"
             disabled={loading}
+            sx={{ 
+              borderRadius: 2,
+              px: 3,
+              boxShadow: theme.shadows[2],
+              '&:hover': {
+                boxShadow: theme.shadows[4]
+              }
+            }}
           >
             {loading ? <CircularProgress size={24} /> : 'Save'}
           </Button>
@@ -816,14 +1090,31 @@ const PatientDialysisData = () => {
       </Dialog>
 
       {/* Lab Result Form Dialog */}
-      <Dialog open={labResultFormOpen} onClose={handleCloseLabResultForm} maxWidth="md" fullWidth>
-        <DialogTitle>
+      <Dialog 
+        open={labResultFormOpen} 
+        onClose={handleCloseLabResultForm} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: theme.shadows[10]
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          bgcolor: theme.palette.primary.light,
+          color: theme.palette.primary.dark,
+          py: 2,
+          fontWeight: 700,
+          fontSize: '1.5rem'
+        }}>
           {selectedLabResult ? 'Edit Laboratory Result' : 'Add New Laboratory Result'}
         </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+        <DialogContent sx={{ p: 3, mt: 2 }}>
+          <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
+              <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}>
                 <InputLabel id="session-label">Hemodialysis Session</InputLabel>
                 <Select
                   labelId="session-label"
@@ -851,6 +1142,7 @@ const PatientDialysisData = () => {
                 fullWidth
                 InputLabelProps={{ shrink: true }}
                 required
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -862,6 +1154,7 @@ const PatientDialysisData = () => {
                 value={labFormData.hemoglobin}
                 onChange={handleLabFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -873,6 +1166,7 @@ const PatientDialysisData = () => {
                 value={labFormData.hematocrit}
                 onChange={handleLabFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -884,6 +1178,7 @@ const PatientDialysisData = () => {
                 value={labFormData.potassium}
                 onChange={handleLabFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -895,6 +1190,7 @@ const PatientDialysisData = () => {
                 value={labFormData.creatinine}
                 onChange={handleLabFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -906,6 +1202,7 @@ const PatientDialysisData = () => {
                 value={labFormData.urea}
                 onChange={handleLabFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -917,6 +1214,7 @@ const PatientDialysisData = () => {
                 value={labFormData.phosphorus}
                 onChange={handleLabFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -928,6 +1226,7 @@ const PatientDialysisData = () => {
                 value={labFormData.calcium}
                 onChange={handleLabFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -939,6 +1238,7 @@ const PatientDialysisData = () => {
                 value={labFormData.albumin}
                 onChange={handleLabFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -950,17 +1250,34 @@ const PatientDialysisData = () => {
                 value={labFormData.kt_v}
                 onChange={handleLabFormChange}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseLabResultForm}>Cancel</Button>
+        <DialogActions sx={{ px: 3, py: 2, bgcolor: '#f5f5f5' }}>
+          <Button 
+            onClick={handleCloseLabResultForm}
+            sx={{ 
+              borderRadius: 2,
+              px: 3
+            }}
+          >
+            Cancel
+          </Button>
           <Button
             onClick={handleSubmitLabResult}
             variant="contained"
             color="primary"
             disabled={loading}
+            sx={{ 
+              borderRadius: 2,
+              px: 3,
+              boxShadow: theme.shadows[2],
+              '&:hover': {
+                boxShadow: theme.shadows[4]
+              }
+            }}
           >
             {loading ? <CircularProgress size={24} /> : 'Save'}
           </Button>
@@ -968,21 +1285,52 @@ const PatientDialysisData = () => {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onClose={handleDeleteDialogClose}>
-        <DialogTitle>Confirm Deletion</DialogTitle>
-        <DialogContent>
+      <Dialog 
+        open={deleteDialogOpen} 
+        onClose={handleDeleteDialogClose}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: theme.shadows[10]
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          bgcolor: theme.palette.error.light,
+          color: theme.palette.error.dark,
+          py: 2
+        }}>
+          Confirm Deletion
+        </DialogTitle>
+        <DialogContent sx={{ p: 3, mt: 2 }}>
           <Typography variant="body1">
             Are you sure you want to delete this dialysis session from {formatDate(selectedSession?.session_date)}?
             This action cannot be undone.
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteDialogClose}>Cancel</Button>
+        <DialogActions sx={{ px: 3, py: 2, bgcolor: '#f5f5f5' }}>
+          <Button 
+            onClick={handleDeleteDialogClose}
+            sx={{ 
+              borderRadius: 2,
+              px: 3
+            }}
+          >
+            Cancel
+          </Button>
           <Button
             onClick={handleDeleteSession}
             color="error"
             variant="contained"
             disabled={loading}
+            sx={{ 
+              borderRadius: 2,
+              px: 3,
+              boxShadow: theme.shadows[2],
+              '&:hover': {
+                boxShadow: theme.shadows[4]
+              }
+            }}
           >
             {loading ? <CircularProgress size={24} /> : 'Delete'}
           </Button>
@@ -990,21 +1338,52 @@ const PatientDialysisData = () => {
       </Dialog>
 
       {/* Delete Lab Result Confirmation Dialog */}
-      <Dialog open={deleteLabDialogOpen} onClose={handleDeleteLabDialogClose}>
-        <DialogTitle>Confirm Deletion</DialogTitle>
-        <DialogContent>
+      <Dialog 
+        open={deleteLabDialogOpen} 
+        onClose={handleDeleteLabDialogClose}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: theme.shadows[10]
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          bgcolor: theme.palette.error.light,
+          color: theme.palette.error.dark,
+          py: 2
+        }}>
+          Confirm Deletion
+        </DialogTitle>
+        <DialogContent sx={{ p: 3, mt: 2 }}>
           <Typography variant="body1">
             Are you sure you want to delete this laboratory result from {formatDate(selectedLabResult?.test_date)}?
             This action cannot be undone.
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteLabDialogClose}>Cancel</Button>
+        <DialogActions sx={{ px: 3, py: 2, bgcolor: '#f5f5f5' }}>
+          <Button 
+            onClick={handleDeleteLabDialogClose}
+            sx={{ 
+              borderRadius: 2,
+              px: 3
+            }}
+          >
+            Cancel
+          </Button>
           <Button
             onClick={handleDeleteLabResult}
             color="error"
             variant="contained"
             disabled={loading}
+            sx={{ 
+              borderRadius: 2,
+              px: 3,
+              boxShadow: theme.shadows[2],
+              '&:hover': {
+                boxShadow: theme.shadows[4]
+              }
+            }}
           >
             {loading ? <CircularProgress size={24} /> : 'Delete'}
           </Button>
@@ -1012,32 +1391,63 @@ const PatientDialysisData = () => {
       </Dialog>
 
       {/* Session Details Dialog */}
-      <Dialog open={sessionDetailsOpen} onClose={handleCloseSessionDetails} maxWidth="md" fullWidth>
-        <DialogTitle>
+      <Dialog 
+        open={sessionDetailsOpen} 
+        onClose={handleCloseSessionDetails} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: theme.shadows[10]
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          bgcolor: theme.palette.primary.light,
+          color: theme.palette.primary.dark,
+          py: 2,
+          fontWeight: 700,
+          fontSize: '1.5rem'
+        }}>
           Session Details - {formatDate(sessionDetails?.session_date)}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ p: 3, mt: 2 }}>
           {sessionDetails && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Typography variant="h4" gutterBottom>
+                <Typography variant="h4" gutterBottom sx={{ 
+                  fontWeight: 600, 
+                  color: theme.palette.primary.dark,
+                  borderBottom: `2px solid ${theme.palette.primary.light}`,
+                  pb: 1
+                }}>
                   Dialysis Session Information
                 </Typography>
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2, borderRadius: 8 }}>
-                  <Typography variant="h6" color="primary" gutterBottom>
+                <Paper sx={{ 
+                  p: 3, 
+                  borderRadius: 4,
+                  boxShadow: theme.shadows[3],
+                  transition: 'transform 0.3s, box-shadow 0.3s',
+                  '&:hover': {
+                    transform: 'translateY(-3px)',
+                    boxShadow: theme.shadows[6],
+                  } 
+                }}>
+                  <Typography variant="h6" color="primary" gutterBottom sx={{ fontWeight: 600 }}>
                     Basic Information
                   </Typography>
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ mb: 1.5 }}>
                       <strong>Date:</strong> {formatDate(sessionDetails.session_date)}
                     </Typography>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ mb: 1.5 }}>
                       <strong>Duration:</strong> {sessionDetails.duration_minutes || '-'} minutes
                     </Typography>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ mb: 1.5 }}>
                       <strong>Staff:</strong> {sessionDetails.attending_staff || '-'}
                     </Typography>
                   </Box>
@@ -1045,18 +1455,27 @@ const PatientDialysisData = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2, borderRadius: 8 }}>
-                  <Typography variant="h6" color="primary" gutterBottom>
+                <Paper sx={{ 
+                  p: 3, 
+                  borderRadius: 4,
+                  boxShadow: theme.shadows[3],
+                  transition: 'transform 0.3s, box-shadow 0.3s',
+                  '&:hover': {
+                    transform: 'translateY(-3px)',
+                    boxShadow: theme.shadows[6],
+                  } 
+                }}>
+                  <Typography variant="h6" color="primary" gutterBottom sx={{ fontWeight: 600 }}>
                     Weight Information
                   </Typography>
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ mb: 1.5 }}>
                       <strong>Pre-Dialysis Weight:</strong> {sessionDetails.pre_weight || '-'} kg
                     </Typography>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ mb: 1.5 }}>
                       <strong>Post-Dialysis Weight:</strong> {sessionDetails.post_weight || '-'} kg
                     </Typography>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ mb: 1.5 }}>
                       <strong>Weight Loss:</strong> {
                         sessionDetails.pre_weight && sessionDetails.post_weight
                           ? (sessionDetails.pre_weight - sessionDetails.post_weight).toFixed(2)
@@ -1068,15 +1487,24 @@ const PatientDialysisData = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2, borderRadius: 8 }}>
-                  <Typography variant="h6" color="primary" gutterBottom>
+                <Paper sx={{ 
+                  p: 3, 
+                  borderRadius: 4,
+                  boxShadow: theme.shadows[3],
+                  transition: 'transform 0.3s, box-shadow 0.3s',
+                  '&:hover': {
+                    transform: 'translateY(-3px)',
+                    boxShadow: theme.shadows[6],
+                  } 
+                }}>
+                  <Typography variant="h6" color="primary" gutterBottom sx={{ fontWeight: 600 }}>
                     Flow Rates
                   </Typography>
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ mb: 1.5 }}>
                       <strong>Blood Flow Rate:</strong> {sessionDetails.blood_flow_rate || '-'} ml/min
                     </Typography>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ mb: 1.5 }}>
                       <strong>Dialysate Flow Rate:</strong> {sessionDetails.dialysate_flow_rate || '-'} ml/min
                     </Typography>
                   </Box>
@@ -1084,12 +1512,21 @@ const PatientDialysisData = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2, borderRadius: 8 }}>
-                  <Typography variant="h6" color="primary" gutterBottom>
+                <Paper sx={{ 
+                  p: 3, 
+                  borderRadius: 4,
+                  boxShadow: theme.shadows[3],
+                  transition: 'transform 0.3s, box-shadow 0.3s',
+                  '&:hover': {
+                    transform: 'translateY(-3px)',
+                    boxShadow: theme.shadows[6],
+                  } 
+                }}>
+                  <Typography variant="h6" color="primary" gutterBottom sx={{ fontWeight: 600 }}>
                     Complications
                   </Typography>
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={{ mb: 1.5 }}>
                       {sessionDetails.complications || 'No complications reported'}
                     </Typography>
                   </Box>
@@ -1097,12 +1534,24 @@ const PatientDialysisData = () => {
               </Grid>
               {sessionAssociatedLabs.length > 0 && (
                 <Grid item xs={12}>
-                  <Paper sx={{ p: 2, borderRadius: 8 }}>
-                    <Typography variant="h6" color="primary" gutterBottom>
+                  <Paper sx={{ 
+                    p: 3, 
+                    borderRadius: 4,
+                    boxShadow: theme.shadows[3]
+                  }}>
+                    <Typography variant="h6" color="primary" gutterBottom sx={{ fontWeight: 600 }}>
                       Associated Laboratory Results
                     </Typography>
-                    <TableContainer>
-                      <Table size="small">
+                    <TableContainer sx={{ mt: 2 }}>
+                      <Table size="small" sx={{ 
+                        '& .MuiTableCell-head': { 
+                          backgroundColor: theme.palette.primary.lighter,
+                          fontWeight: 700
+                        },
+                        '& .MuiTableRow-root:nth-of-type(odd)': {
+                          backgroundColor: theme.palette.action.hover
+                        }
+                      }}>
                         <TableHead>
                           <TableRow>
                             <TableCell>Test Date</TableCell>
@@ -1116,7 +1565,7 @@ const PatientDialysisData = () => {
                         </TableHead>
                         <TableBody>
                           {sessionAssociatedLabs.map((lab) => (
-                            <TableRow key={lab.id}>
+                            <TableRow key={lab.id} hover>
                               <TableCell>{formatDate(lab.test_date)}</TableCell>
                               <TableCell>{lab.hemoglobin || '-'}</TableCell>
                               <TableCell>{lab.hematocrit || '-'}</TableCell>
@@ -1134,11 +1583,15 @@ const PatientDialysisData = () => {
               )}
               {sessionAssociatedLabs.length === 0 && (
                 <Grid item xs={12}>
-                  <Paper sx={{ p: 2, borderRadius: 8 }}>
-                    <Typography variant="h6" color="primary" gutterBottom>
+                  <Paper sx={{ 
+                    p: 3, 
+                    borderRadius: 4,
+                    boxShadow: theme.shadows[3]
+                  }}>
+                    <Typography variant="h6" color="primary" gutterBottom sx={{ fontWeight: 600 }}>
                       Laboratory Results
                     </Typography>
-                    <Box sx={{ mt: 2, mb: 2 }}>
+                    <Box sx={{ mt: 2, mb: 3 }}>
                       <Typography variant="body1">
                         No laboratory results associated with this session.
                       </Typography>
@@ -1155,6 +1608,15 @@ const PatientDialysisData = () => {
                         });
                         setLabResultFormOpen(true);
                       }}
+                      sx={{ 
+                        borderRadius: 8,
+                        px: 3,
+                        py: 1,
+                        boxShadow: theme.shadows[1],
+                        '&:hover': {
+                          boxShadow: theme.shadows[3]
+                        }
+                      }}
                     >
                       Add Lab Results
                     </Button>
@@ -1164,12 +1626,32 @@ const PatientDialysisData = () => {
             </Grid>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseSessionDetails}>Close</Button>
-          <Button onClick={() => {
-            handleCloseSessionDetails();
-            handleOpenSessionForm(sessionDetails);
-          }} color="primary">
+        <DialogActions sx={{ px: 3, py: 2, bgcolor: '#f5f5f5' }}>
+          <Button 
+            onClick={handleCloseSessionDetails}
+            sx={{ 
+              borderRadius: 2,
+              px: 3
+            }}
+          >
+            Close
+          </Button>
+          <Button 
+            onClick={() => {
+              handleCloseSessionDetails();
+              handleOpenSessionForm(sessionDetails);
+            }} 
+            color="primary"
+            variant="contained"
+            sx={{ 
+              borderRadius: 2,
+              px: 3,
+              boxShadow: theme.shadows[2],
+              '&:hover': {
+                boxShadow: theme.shadows[4]
+              }
+            }}
+          >
             Edit Session
           </Button>
         </DialogActions>
@@ -1182,7 +1664,18 @@ const PatientDialysisData = () => {
         onClose={handleCloseAlert}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: '100%' }}>
+        <Alert 
+          onClose={handleCloseAlert} 
+          severity={alert.severity} 
+          sx={{ 
+            width: '100%', 
+            boxShadow: theme.shadows[3],
+            borderRadius: 2,
+            '& .MuiAlert-icon': {
+              fontSize: '1.5rem'
+            }
+          }}
+        >
           {alert.message}
         </Alert>
       </Snackbar>
