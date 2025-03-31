@@ -82,14 +82,15 @@ const api = {
 
 const institutionsApi = {
   // Get all institutions
-  getAllInstitutions: async () => {
+  getAllInstitutions: async (page = 1, limit = 10) => {
     try {
-      return await api.get('/institutions');
+      const response = await api.get(`/institutions?page=${page}&limit=${limit}`);
+      return response;
     } catch (error) {
       if (error.response && error.response.status !== 401) {
         throw new Error(error.response?.data?.message || 'Failed to fetch institutions');
       }
-      return [];
+      return { items: [], total: 0 };
     }
   },
 

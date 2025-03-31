@@ -26,7 +26,8 @@ import {
   IconButton,
   CircularProgress,
   Snackbar,
-  Alert
+  Alert,
+  TablePagination
 } from '@mui/material';
 
 // Icons
@@ -83,6 +84,9 @@ const InstitutionManagement = () => {
     message: '',
     severity: 'success'
   });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRows, setTotalRows] = useState(0);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -154,21 +158,26 @@ const InstitutionManagement = () => {
     deleteInstitution: (id) => api.delete(`/institutions/${id}`)
   };
 
-  // Fetch institutions on load
+  // Fetch institutions on load or page change
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [page, rowsPerPage]);
 
   // Fetch all institutions
   const fetchData = async () => {
     setLoading(true);
     try {
       console.log('Fetching institutions...');
-      const response = await axiosAuth.get('/institutions');
+      const response = await axiosAuth.get(`/institutions?page=${page + 1}&limit=${rowsPerPage}`);
       console.log('Institutions data:', response.data);
-      setInstitutions(response.data);
+      
+      // Ensure we always set an array, even if empty
+      setInstitutions(response.data?.items || []);
+      setTotalRows(response.data?.total || 0);
     } catch (error) {
       console.error('Error fetching institutions:', error);
+      setInstitutions([]); // Set empty array on error
+      setTotalRows(0);
       setAlert({
         open: true,
         message: `Error: ${error.response?.data?.message || error.message}`,
@@ -304,6 +313,17 @@ const InstitutionManagement = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  // Handle page change
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
     <MainCard title="Institution Management">
       {loading && (
@@ -340,7 +360,7 @@ const InstitutionManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {institutions.length > 0 ? (
+            {institutions && institutions.length > 0 ? (
               institutions.map((institution) => (
                 <TableRow key={institution.id}>
                   <TableCell>{institution.name || '-'}</TableCell>
@@ -351,12 +371,14 @@ const InstitutionManagement = () => {
                   <TableCell>{formatDate(institution.establishment_date)}</TableCell>
                   <TableCell>{institution.dialysis_stations_count || '-'}</TableCell>
                   <TableCell>
-                    <IconButton color="primary" onClick={() => handleEdit(institution)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => handleDeleteConfirmation(institution)}>
-                      <DeleteIcon />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <IconButton color="primary" onClick={() => handleEdit(institution)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton color="error" onClick={() => handleDeleteConfirmation(institution)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))
@@ -371,6 +393,17 @@ const InstitutionManagement = () => {
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={totalRows}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Rows per page:"
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count}`}
+        />
       </TableContainer>
 
       {/* Institution Form Dialog */}

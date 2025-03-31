@@ -30,13 +30,24 @@ const authApi = {
 
       console.log('Logging in with username:', credentials.email);
       const response = await axios.post(`${API_BASE_URL}/auth/login`, backendCredentials);
+      console.log('Login response:', {
+        data: response.data,
+        user: response.data.user,
+        token: response.data.access_token ? 'present' : 'missing'
+      });
 
       // Store the access token and user role in localStorage
       if (response.data && response.data.access_token) {
         localStorage.setItem('token', response.data.access_token);
         localStorage.setItem('userRole', response.data.role || 'user');
         localStorage.setItem('userId', response.data.id);
-        console.log('Login successful. Role:', response.data.role);
+        
+        // Get relatedEntityId from the user object
+        const relatedEntityId = response.data.user?.relatedEntityId;
+        if (relatedEntityId) {
+          localStorage.setItem('relatedEntityId', relatedEntityId.toString());
+        }
+        console.log('Login successful. Role:', response.data.role, 'RelatedEntityId:', relatedEntityId);
       }
 
       return response.data;
@@ -51,6 +62,7 @@ const authApi = {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');
+    localStorage.removeItem('relatedEntityId');
   },
 
   // Check if current user is authenticated

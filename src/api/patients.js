@@ -46,10 +46,10 @@ const getAuthorizedAxios = () => {
 };
 
 const patientsApi = {
-  getAllPatients: async () => {
+  getAllPatients: async (page = 1, limit = 10) => {
     try {
       const api = getAuthorizedAxios();
-      const response = await api.get('/patients');
+      const response = await api.get(`/patients?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching patients:', error);
@@ -58,7 +58,7 @@ const patientsApi = {
       if (error.response && error.response.status === 401) {
         // Silently handle auth errors
         console.warn('Authentication error when fetching patients - user may need to log in');
-        return [];
+        return { items: [], total: 0 };
       }
 
       if (error.response) {
@@ -70,11 +70,25 @@ const patientsApi = {
 
   getPatient: async (patientId) => {
     try {
+      console.log('getPatient called with ID:', patientId);
+      console.log('Current auth status:', {
+        token: localStorage.getItem('token') ? 'present' : 'missing',
+        userRole: localStorage.getItem('userRole'),
+        relatedEntityId: localStorage.getItem('relatedEntityId')
+      });
+      
       const api = getAuthorizedAxios();
+      console.log('Making API request to:', `${API_BASE_URL}/patients/${patientId}`);
       const response = await api.get(`/patients/${patientId}`);
+      console.log('API response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching patient:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
 
       // Check if the error is due to authentication
       if (error.response && error.response.status === 401) {
@@ -142,7 +156,7 @@ const patientsApi = {
       // Check if the error is due to authentication
       if (error.response && error.response.status === 401) {
         console.warn('Authentication error when fetching institutions - user may need to log in');
-        return [];
+        return { items: [], total: 0 };
       }
 
       if (error.response) {

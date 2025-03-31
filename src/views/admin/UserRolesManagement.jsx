@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE_URL } from 'api/config';
 import {
   Box,
   Button,
@@ -26,47 +24,13 @@ import {
   Alert,
   useTheme,
   TextField,
-  Grid
+  Grid,
+  TablePagination
 } from '@mui/material';
 
 import MainCard from 'ui-component/cards/MainCard';
-
-// SUPER SIMPLE DIRECT API IMPLEMENTATION
-// All requests use axios directly
-
-// Create a direct axios instance with the auth token
-const axiosAuth = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  withCredentials: false // Important - don't share credentials between requests
-});
-
-// Add auth token to every request
-axiosAuth.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Handle auth errors
-axiosAuth.interceptors.response.use(
-  response => response,
-  error => {
-    console.error('API Error:', error);
-    if (error.response && error.response.status === 401) {
-      alert('Authentication error! Please log in again.');
-      localStorage.removeItem('token');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('userId');
-      window.location.href = '/';
-    }
-    return Promise.reject(error);
-  }
-);
+import usersApi from 'api/users';
+import authApi from 'api/auth';
 
 const UserRolesManagement = () => {
   const theme = useTheme();
@@ -74,7 +38,9 @@ const UserRolesManagement = () => {
   // State variables
   const [users, setUsers] = useState([]);
   const [patients, setPatients] = useState([]);
+  const [filteredPatients, setFilteredPatients] = useState([]);
   const [institutions, setInstitutions] = useState([]);
+  const [filteredInstitutions, setFilteredInstitutions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -92,11 +58,34 @@ const UserRolesManagement = () => {
     firstName: '',
     lastName: ''
   });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRows, setTotalRows] = useState(0);
+  const [patientSearch, setPatientSearch] = useState('');
+  const [patientPage, setPatientPage] = useState(0);
+  const [patientRowsPerPage, setPatientRowsPerPage] = useState(5);
+  const [totalPatients, setTotalPatients] = useState(0);
+  const [patientLoading, setPatientLoading] = useState(false);
+  const [institutionSearch, setInstitutionSearch] = useState('');
+  const [institutionPage, setInstitutionPage] = useState(0);
+  const [institutionRowsPerPage, setInstitutionRowsPerPage] = useState(5);
+  const [totalInstitutions, setTotalInstitutions] = useState(0);
+  const [institutionLoading, setInstitutionLoading] = useState(false);
+  const [filters, setFilters] = useState({
+    medical_record_number: '',
+    name: '',
+    date_of_birth: ''
+  });
+  const [institutionFilters, setInstitutionFilters] = useState({
+    name: '',
+    address: '',
+    contact: ''
+  });
 
-  // Fetch data on component mount
+  // Fetch data on component mount or page change
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [page, rowsPerPage]);
 
   // Display alerts
   const showAlert = (message, severity = 'success') => {
@@ -111,36 +100,126 @@ const UserRolesManagement = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      console.log('Fetching users, patients, and institutions data...');
-      console.log('Auth status:', localStorage.getItem('token') ? 'Token exists' : 'No token');
-      console.log('User role:', localStorage.getItem('userRole'));
+      console.log('Starting to fetch data...', { page, rowsPerPage });
+      
+      // Get users with pagination - page is 0-based in MUI but 1-based in API
+      const usersData = await usersApi.getAllUsers(page + 1, rowsPerPage);
+      console.log('Users API response:', usersData);
+      
+      if (!usersData || !Array.isArray(usersData.items)) {
+        console.warn('Invalid users data structure:', usersData);
+        setUsers([]);
+        setTotalRows(0);
+      } else {
+        console.log('Setting users state:', {
+          items: usersData.items,
+          itemsLength: usersData.items.length,
+          total: usersData.total
+        });
+        setUsers(usersData.items);
+        setTotalRows(usersData.total);
+      }
 
-      // Get all data
-      const usersResponse = await axiosAuth.get('/users');
-      console.log('Users data:', usersResponse.data);
-      setUsers(usersResponse.data);
+      // Get patients and institutions for dropdowns
+      const patientsData = await usersApi.getAllPatients();
+      console.log('Patients data:', patientsData);
+      setPatients(patientsData?.items || []);
 
-      const patientsResponse = await axiosAuth.get('/patients');
-      console.log('Patients data:', patientsResponse.data);
-      setPatients(patientsResponse.data);
-
-      const institutionsResponse = await axiosAuth.get('/institutions');
-      console.log('Institutions data:', institutionsResponse.data);
-      setInstitutions(institutionsResponse.data);
+      const institutionsData = await usersApi.getAllInstitutions();
+      console.log('Institutions data:', institutionsData);
+      setInstitutions(institutionsData?.items || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      showAlert(`Error: ${error.response?.data?.message || error.message}`, 'error');
+      console.error('Error in fetchData:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      setAlert({
+        open: true,
+        message: `Error: ${error.message}`,
+        severity: 'error'
+      });
+      setUsers([]);
+      setPatients([]);
+      setInstitutions([]);
+      setTotalRows(0);
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle page change
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Calculate pagination display values
+  const calculatePaginationValues = (page, rowsPerPage, totalRows) => {
+    const from = page * rowsPerPage + 1;
+    const to = Math.min((page + 1) * rowsPerPage, totalRows);
+    return { from, to };
+  };
+
+  // Fetch all patients at once
+  const fetchAllPatients = async () => {
+    setPatientLoading(true);
+    try {
+      // Fetch all patients by setting a large limit
+      const patientsData = await usersApi.getAllPatients(1, 1000);
+      setPatients(patientsData?.items || []);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+      setPatients([]);
+    } finally {
+      setPatientLoading(false);
+    }
+  };
+
+  // Fetch all institutions at once
+  const fetchAllInstitutions = async () => {
+    setInstitutionLoading(true);
+    try {
+      // Fetch all institutions by setting a large limit
+      const institutionsData = await usersApi.getAllInstitutions(1, 1000);
+      setInstitutions(institutionsData?.items || []);
+    } catch (error) {
+      console.error('Error fetching institutions:', error);
+      setInstitutions([]);
+    } finally {
+      setInstitutionLoading(false);
+    }
+  };
+
   // Handle opening the dialog for role assignment
-  const handleOpenRoleDialog = (user, action) => {
+  const handleOpenRoleDialog = async (user, action) => {
     setCurrentUser(user);
     setRoleAction(action);
     setSelectedEntity('');
     setOpen(true);
+
+    // Reset filters when opening dialog
+    if (action === 'patient') {
+      setFilters({
+        medical_record_number: '',
+        name: '',
+        date_of_birth: ''
+      });
+      await fetchAllPatients();
+    } else if (action === 'institution') {
+      setInstitutionFilters({
+        name: '',
+        address: '',
+        contact: ''
+      });
+      await fetchAllInstitutions();
+    }
   };
 
   // Close dialog
@@ -157,24 +236,26 @@ const UserRolesManagement = () => {
     setLoading(true);
     try {
       if (roleAction === 'admin') {
-        console.log(`Making user ${currentUser.id} an admin`);
-        await axiosAuth.post(`/user-roles/make-admin/${currentUser.id}`);
+        await usersApi.makeUserAdmin(currentUser.id);
       } else if (roleAction === 'patient' && selectedEntity) {
-        console.log(`Linking user ${currentUser.id} to patient ${selectedEntity}`);
-        await axiosAuth.post(`/user-roles/link-patient/${currentUser.id}/${selectedEntity}`);
+        await usersApi.linkUserToPatient(currentUser.id, selectedEntity);
+        // Force user to log out and log in again to get new JWT token
+        authApi.logout();
+        showAlert(`Successfully linked patient to ${currentUser.username}. User must log in again to access their patient data.`);
+        handleClose();
+        return;
       } else if (roleAction === 'institution' && selectedEntity) {
-        console.log(`Linking user ${currentUser.id} to institution ${selectedEntity}`);
-        await axiosAuth.post(`/user-roles/link-institution/${currentUser.id}/${selectedEntity}`);
+        await usersApi.linkUserToInstitution(currentUser.id, selectedEntity);
       } else {
         throw new Error('Invalid role action or missing entity selection');
       }
 
       showAlert(`Successfully assigned ${roleAction} role to ${currentUser.username}`);
       handleClose();
-      fetchData(); // Refresh data to show updated roles
+      fetchData(); // Refresh data
     } catch (error) {
       console.error('Error assigning role:', error);
-      showAlert(`Error: ${error.response?.data?.message || error.message}`, 'error');
+      showAlert(error.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -215,7 +296,7 @@ const UserRolesManagement = () => {
     setLoading(true);
     try {
       // Use the register endpoint to create a new user
-      await axiosAuth.post('/auth/register', {
+      await usersApi.registerUser({
         username: newUser.email,
         email: newUser.email,
         password: newUser.password,
@@ -234,8 +315,105 @@ const UserRolesManagement = () => {
     }
   };
 
+  // Handle filter changes for patients
+  const handleFilterChange = (field) => (event) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+
+  // Apply filters to patients
+  useEffect(() => {
+    if (!patients) return;
+    
+    let filtered = [...patients];
+    
+    if (filters.medical_record_number) {
+      filtered = filtered.filter(patient => 
+        patient.medical_record_number?.toLowerCase().includes(filters.medical_record_number.toLowerCase())
+      );
+    }
+    
+    if (filters.name) {
+      filtered = filtered.filter(patient => {
+        const fullName = `${patient.first_name} ${patient.last_name}`.toLowerCase();
+        return fullName.includes(filters.name.toLowerCase());
+      });
+    }
+    
+    if (filters.date_of_birth) {
+      filtered = filtered.filter(patient => {
+        const dob = new Date(patient.date_of_birth).toLocaleDateString();
+        return dob.includes(filters.date_of_birth);
+      });
+    }
+    
+    setFilteredPatients(filtered);
+    setTotalPatients(filtered.length);
+    setPatientPage(0); // Reset to first page when filters change
+  }, [patients, filters]);
+
+  // Remove unused effects and functions
+  const handlePatientPageChange = (event, newPage) => {
+    setPatientPage(newPage);
+  };
+
+  const handlePatientRowsPerPageChange = (event) => {
+    setPatientRowsPerPage(parseInt(event.target.value, 10));
+    setPatientPage(0);
+  };
+
+  // Apply filters to institutions
+  useEffect(() => {
+    if (!institutions) return;
+    
+    let filtered = [...institutions];
+    
+    if (institutionFilters.name) {
+      filtered = filtered.filter(institution => 
+        institution.name?.toLowerCase().includes(institutionFilters.name.toLowerCase())
+      );
+    }
+    
+    if (institutionFilters.address) {
+      filtered = filtered.filter(institution => 
+        institution.address?.toLowerCase().includes(institutionFilters.address.toLowerCase())
+      );
+    }
+    
+    if (institutionFilters.contact) {
+      filtered = filtered.filter(institution => 
+        institution.contact_info?.toLowerCase().includes(institutionFilters.contact.toLowerCase())
+      );
+    }
+    
+    setFilteredInstitutions(filtered);
+    setTotalInstitutions(filtered.length);
+    setInstitutionPage(0); // Reset to first page when filters change
+  }, [institutions, institutionFilters]);
+
+  // Handle institution filter changes
+  const handleInstitutionFilterChange = (field) => (event) => {
+    setInstitutionFilters(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+
+  // Handle institution page change
+  const handleInstitutionPageChange = (event, newPage) => {
+    setInstitutionPage(newPage);
+  };
+
+  // Handle institution rows per page change
+  const handleInstitutionRowsPerPageChange = (event) => {
+    setInstitutionRowsPerPage(parseInt(event.target.value, 10));
+    setInstitutionPage(0);
+  };
+
   return (
-    <MainCard title="User Role Management">
+    <MainCard title="User Roles Management">
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         <Button
           variant="contained"
@@ -266,7 +444,7 @@ const UserRolesManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.length > 0 ? (
+            {users && users.length > 0 ? (
               users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>{user.id}</TableCell>
@@ -284,7 +462,7 @@ const UserRolesManagement = () => {
                               theme.palette.secondary.main
                       }}
                     >
-                      {user.role && user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : '-'}
                     </Typography>
                   </TableCell>
                   <TableCell>
@@ -320,17 +498,49 @@ const UserRolesManagement = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={7} align="center">
-                  {loading ? 'Loading users...' : 'No users found'}
+                  <Typography variant="body1">
+                    {loading ? 'Loading users...' : 'No users found'}
+                  </Typography>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={totalRows}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Rows per page:"
+          labelDisplayedRows={({ from, to, count }) => {
+            const values = calculatePaginationValues(page, rowsPerPage, count);
+            return `${values.from}-${values.to} of ${count}`;
+          }}
+        />
       </TableContainer>
 
       {/* Role assignment dialog */}
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>
+      <Dialog 
+        open={open} 
+        onClose={handleClose}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            boxShadow: theme.shadows[10]
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          bgcolor: theme.palette.primary.light,
+          color: theme.palette.primary.dark,
+          py: 2,
+          fontWeight: 700
+        }}>
           {roleAction === 'admin'
             ? 'Make User an Admin'
             : roleAction === 'patient'
@@ -338,7 +548,7 @@ const UserRolesManagement = () => {
               : 'Link User to Institution'}
         </DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText sx={{ mb: 2 }}>
             {roleAction === 'admin'
               ? `Are you sure you want to make ${currentUser?.username} an admin?`
               : roleAction === 'patient'
@@ -346,48 +556,192 @@ const UserRolesManagement = () => {
                 : `Select an institution to link with user ${currentUser?.username}:`}
           </DialogContentText>
 
-          {roleAction !== 'admin' && (
-            <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel id="entity-select-label">
-                {roleAction === 'patient' ? 'Patient' : 'Institution'}
-              </InputLabel>
-              <Select
-                labelId="entity-select-label"
-                value={selectedEntity}
-                label={roleAction === 'patient' ? 'Patient' : 'Institution'}
-                onChange={(e) => setSelectedEntity(e.target.value)}
-                required
-              >
-                {roleAction === 'patient' ? (
-                  patients.length > 0 ? (
-                    patients.map(patient => (
-                      <MenuItem key={patient.id} value={patient.id}>
-                        {`${patient.firstName} ${patient.lastName} (ID: ${patient.id})`}
-                      </MenuItem>
-                    ))
-                  ) : (
-                    <MenuItem disabled>No patients available</MenuItem>
-                  )
-                ) : (
-                  institutions.length > 0 ? (
-                    institutions.map(institution => (
-                      <MenuItem key={institution.id} value={institution.id}>
-                        {`${institution.name} (ID: ${institution.id})`}
-                      </MenuItem>
-                    ))
-                  ) : (
-                    <MenuItem disabled>No institutions available</MenuItem>
-                  )
-                )}
-              </Select>
-            </FormControl>
-          )}
+          {roleAction === 'patient' ? (
+            <>
+              <TableContainer component={Paper} sx={{ maxHeight: 400, mb: 2 }}>
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          placeholder="Filter Medical Record #"
+                          value={filters.medical_record_number}
+                          onChange={handleFilterChange('medical_record_number')}
+                          fullWidth
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          placeholder="Filter Name"
+                          value={filters.name}
+                          onChange={handleFilterChange('name')}
+                          fullWidth
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          placeholder="Filter Date of Birth"
+                          value={filters.date_of_birth}
+                          onChange={handleFilterChange('date_of_birth')}
+                          fullWidth
+                        />
+                      </TableCell>
+                      <TableCell>Action</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {patientLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">
+                          <CircularProgress size={24} />
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredPatients.length > 0 ? (
+                      filteredPatients
+                        .slice(patientPage * patientRowsPerPage, (patientPage + 1) * patientRowsPerPage)
+                        .map((patient) => (
+                          <TableRow 
+                            key={patient.id}
+                            selected={selectedEntity === patient.id}
+                            hover
+                            onClick={() => setSelectedEntity(patient.id)}
+                            sx={{ cursor: 'pointer' }}
+                          >
+                            <TableCell>{patient.medical_record_number || '-'}</TableCell>
+                            <TableCell>{`${patient.first_name} ${patient.last_name}`}</TableCell>
+                            <TableCell>{new Date(patient.date_of_birth).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              <Button
+                                variant={selectedEntity === patient.id ? "contained" : "outlined"}
+                                size="small"
+                                onClick={() => setSelectedEntity(patient.id)}
+                              >
+                                Select
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">
+                          No patients found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              
+              <TablePagination
+                component="div"
+                count={totalPatients}
+                page={patientPage}
+                onPageChange={handlePatientPageChange}
+                rowsPerPage={patientRowsPerPage}
+                onRowsPerPageChange={handlePatientRowsPerPageChange}
+                rowsPerPageOptions={[5, 10, 25]}
+              />
+            </>
+          ) : roleAction === 'institution' ? (
+            <>
+              <TableContainer component={Paper} sx={{ maxHeight: 400, mb: 2 }}>
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          placeholder="Filter Institution Name"
+                          value={institutionFilters.name}
+                          onChange={handleInstitutionFilterChange('name')}
+                          fullWidth
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          placeholder="Filter Address"
+                          value={institutionFilters.address}
+                          onChange={handleInstitutionFilterChange('address')}
+                          fullWidth
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          placeholder="Filter Contact"
+                          value={institutionFilters.contact}
+                          onChange={handleInstitutionFilterChange('contact')}
+                          fullWidth
+                        />
+                      </TableCell>
+                      <TableCell>Action</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {institutionLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">
+                          <CircularProgress size={24} />
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredInstitutions.length > 0 ? (
+                      filteredInstitutions
+                        .slice(institutionPage * institutionRowsPerPage, (institutionPage + 1) * institutionRowsPerPage)
+                        .map((institution) => (
+                          <TableRow 
+                            key={institution.id}
+                            selected={selectedEntity === institution.id}
+                            hover
+                            onClick={() => setSelectedEntity(institution.id)}
+                            sx={{ cursor: 'pointer' }}
+                          >
+                            <TableCell>{institution.name}</TableCell>
+                            <TableCell>{institution.address || '-'}</TableCell>
+                            <TableCell>{institution.contact_info || '-'}</TableCell>
+                            <TableCell>
+                              <Button
+                                variant={selectedEntity === institution.id ? "contained" : "outlined"}
+                                size="small"
+                                onClick={() => setSelectedEntity(institution.id)}
+                              >
+                                Select
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">
+                          No institutions found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              
+              <TablePagination
+                component="div"
+                count={totalInstitutions}
+                page={institutionPage}
+                onPageChange={handleInstitutionPageChange}
+                rowsPerPage={institutionRowsPerPage}
+                onRowsPerPageChange={handleInstitutionRowsPerPageChange}
+                rowsPerPageOptions={[5, 10, 25]}
+              />
+            </>
+          ) : null}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">Cancel</Button>
+        <DialogActions sx={{ px: 3, py: 2, bgcolor: '#f5f5f5' }}>
+          <Button onClick={handleClose}>Cancel</Button>
           <Button
             onClick={handleAssignRole}
             color="primary"
+            variant="contained"
             disabled={(roleAction !== 'admin' && !selectedEntity) || loading}
           >
             {loading ? <CircularProgress size={24} /> : 'Confirm'}

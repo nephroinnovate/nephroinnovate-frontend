@@ -103,20 +103,20 @@ const PatientDialysisData = () => {
     setLoading(true);
     try {
       // For patient role, fetch only their specific record
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
-        throw new Error('User ID not found');
+      const patientId = localStorage.getItem('relatedEntityId');
+      if (!patientId) {
+        throw new Error('Patient ID not found');
       }
 
       // Fetch patient data and dialysis sessions
-      const patientData = await patientsApi.getPatient(userId);
+      const patientData = await patientsApi.getPatient(parseInt(patientId));
       setPatient(patientData);
 
-      const sessionsData = await dialysisApi.getSessionsByPatient(userId);
+      const sessionsData = await dialysisApi.getSessionsByPatient(parseInt(patientId));
       setSessions(sessionsData);
 
       // Fetch laboratory results
-      const labResultsData = await laboratoryApi.getLabResultsByPatient(userId);
+      const labResultsData = await laboratoryApi.getLabResultsByPatient(parseInt(patientId));
       setLabResults(labResultsData);
     } catch (error) {
       setAlert({
@@ -198,10 +198,13 @@ const PatientDialysisData = () => {
   const handleSubmitSession = async () => {
     setLoading(true);
     try {
-      const userId = localStorage.getItem('userId');
+      if (!patient) {
+        throw new Error('Patient data not found');
+      }
+
       const sessionData = {
         ...formData,
-        patient_id: parseInt(userId)
+        patient_id: patient.id
       };
 
       let createdSession;
@@ -335,7 +338,7 @@ const PatientDialysisData = () => {
   const handleSubmitLabResult = async () => {
     setLoading(true);
     try {
-      const userId = localStorage.getItem('userId');
+      const userId = localStorage.getItem('relatedEntityId');
       const resultData = {
         ...labFormData,
         patient_id: parseInt(userId)

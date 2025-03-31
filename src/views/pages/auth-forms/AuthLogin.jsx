@@ -95,10 +95,9 @@ export default function AuthLogin() {
       // Store the access token and user role in localStorage
       localStorage.setItem('token', response.access_token);
       localStorage.setItem('userRole', response.role || 'user');
-
-      // Store user ID if available
-      if (response.id) {
-        localStorage.setItem('userId', response.id.toString());
+      localStorage.setItem('userId', response.id);
+      if (response.relatedEntityId) {
+        localStorage.setItem('relatedEntityId', response.relatedEntityId.toString());
       }
 
       // Store user data if needed

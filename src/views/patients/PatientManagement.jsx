@@ -24,7 +24,8 @@ import {
   IconButton,
   CircularProgress,
   Snackbar,
-  Alert
+  Alert,
+  TablePagination
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
@@ -51,6 +52,9 @@ const PatientManagement = () => {
     message: '',
     severity: 'success'
   });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRows, setTotalRows] = useState(0);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -71,38 +75,79 @@ const PatientManagement = () => {
   const isPatientUser = userRole === 'patient';
   const isAdmin = userRole === 'admin';
 
-  // Fetch patients and institutions on load
+  // Fetch patients and institutions on load or page change
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [page, rowsPerPage]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       // For patient role, fetch only their specific record
       if (isPatientUser) {
-        const patientId = localStorage.getItem('userId');
-        if (patientId) {
-          const patientData = await patientsApi.getPatient(patientId);
-          setPatients([patientData]);
+        const patientId = localStorage.getItem('relatedEntityId');
+        console.log('Patient user detected, fetching data with ID:', patientId);
+        console.log('User role:', userRole);
+        console.log('Local storage contents:', {
+          token: localStorage.getItem('token'),
+          userRole: localStorage.getItem('userRole'),
+          relatedEntityId: localStorage.getItem('relatedEntityId')
+        });
+        
+        if (patientId && !isNaN(parseInt(patientId))) {
+          console.log('Attempting to fetch patient data with ID:', parseInt(patientId));
+          const patientData = await patientsApi.getPatient(parseInt(patientId));
+          console.log('Received patient data:', patientData);
+          if (patientData) {
+            setPatients([patientData]);
+            setTotalRows(1);
+            console.log('Successfully set patient data');
+          } else {
+            console.warn('No patient data received from API');
+            setAlert({
+              open: true,
+              message: 'Unable to fetch patient data',
+              severity: 'error'
+            });
+          }
+        } else {
+          console.warn('Invalid or missing patient ID:', patientId);
+          setAlert({
+            open: true,
+            message: 'Invalid patient ID',
+            severity: 'error'
+          });
         }
       } else {
         // For admin and institution roles, fetch all accessible patients
-        const patientsData = await patientsApi.getAllPatients();
-        setPatients(patientsData);
+        console.log('Non-patient user detected, fetching all accessible patients');
+        const patientsData = await patientsApi.getAllPatients(page + 1, rowsPerPage);
+        console.log('Received patients data:', patientsData);
+        setPatients(patientsData?.items || []);
+        setTotalRows(patientsData?.total || 0);
       }
 
       // Only admins need institutions data for the dropdown
       if (isAdmin) {
+        console.log('Admin user detected, fetching institutions');
         const institutionsData = await patientsApi.getAllInstitutions();
-        setInstitutions(institutionsData);
+        console.log('Received institutions data:', institutionsData);
+        setInstitutions(institutionsData?.items || []);
       }
     } catch (error) {
+      console.error('Error in fetchData:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data
+      });
       setAlert({
         open: true,
         message: `Error: ${error.message}`,
         severity: 'error'
       });
+      setPatients([]);
+      setInstitutions([]);
+      setTotalRows(0);
     } finally {
       setLoading(false);
     }
@@ -239,11 +284,24 @@ const PatientManagement = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  // Handle page change
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
     <MainCard
       title="Patient Management"
       sx={{
-        bgcolor: theme.palette.mode === 'dark' ? '#1e1e2f' : 'inherit'
+        '& .MuiPaper-root': {
+          backgroundColor: theme.palette.background.paper
+        }
       }}
     >
       {loading && (
@@ -267,11 +325,13 @@ const PatientManagement = () => {
       )}
 
       {/* Patients table */}
-      <TableContainer
-        component={Paper}
+      <TableContainer 
+        component={Paper} 
         sx={{
-          bgcolor: theme.palette.background.paper,
-          boxShadow: 'none'
+          backgroundColor: theme.palette.background.paper,
+          '& .MuiTable-root': {
+            backgroundColor: theme.palette.background.paper
+          }
         }}
       >
         <Table sx={{ minWidth: 650 }}>
@@ -288,9 +348,19 @@ const PatientManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {patients.length > 0 ? (
+            {patients && patients.length > 0 ? (
               patients.map((patient) => (
-                <TableRow key={patient.id}>
+                <TableRow 
+                  key={patient.id}
+                  sx={{
+                    '&:nth-of-type(odd)': {
+                      backgroundColor: theme.palette.action.hover
+                    },
+                    '&:hover': {
+                      backgroundColor: theme.palette.action.selected
+                    }
+                  }}
+                >
                   <TableCell>{patient.medical_record_number || '-'}</TableCell>
                   <TableCell>{`${patient.first_name || ''} ${patient.last_name || ''}`}</TableCell>
                   <TableCell>{formatDate(patient.date_of_birth)}</TableCell>
@@ -300,12 +370,14 @@ const PatientManagement = () => {
                   <TableCell>{formatDate(patient.dialysis_start_date)}</TableCell>
                   {!isPatientUser && (
                     <TableCell>
-                      <IconButton color="primary" onClick={() => handleEdit(patient)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton color="error" onClick={() => handleDeleteConfirmation(patient)}>
-                        <DeleteIcon />
-                      </IconButton>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton color="primary" onClick={() => handleEdit(patient)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton color="error" onClick={() => handleDeleteConfirmation(patient)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
                     </TableCell>
                   )}
                 </TableRow>
@@ -321,6 +393,19 @@ const PatientManagement = () => {
             )}
           </TableBody>
         </Table>
+        {!isPatientUser && (
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={totalRows}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            labelRowsPerPage="Rows per page:"
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count}`}
+          />
+        )}
       </TableContainer>
 
       {/* Patient Form Dialog */}

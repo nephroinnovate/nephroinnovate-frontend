@@ -5,21 +5,45 @@ import { API_BASE_URL, handleAuthError } from './config';
 const getAuthorizedAxios = () => {
   // Get token fresh every time
   const token = localStorage.getItem('token');
+  
+  if (!token) {
+    console.warn('No auth token found in localStorage');
+    throw new Error('Authentication required');
+  }
+
+  console.log('Creating axios instance with token:', token.substring(0, 10) + '...');
 
   // Create axios instance with appropriate headers
   const instance = axios.create({
     baseURL: API_BASE_URL,
-    headers: token ? { Authorization: `Bearer ${token}` } : {}
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
   });
 
   // Add response interceptor to handle auth errors
   instance.interceptors.response.use(
-    response => response,
+    response => {
+      console.log('API Response:', {
+        url: response.config.url,
+        status: response.status,
+        data: response.data
+      });
+      return response;
+    },
     error => {
+      console.error('API Error:', {
+        url: error.config?.url,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+
       // Handle 401 Unauthorized errors
       if (error.response && error.response.status === 401) {
         console.warn('401 Unauthorized response received');
         handleAuthError();
+        return Promise.reject(new Error('Authentication failed'));
       }
       return Promise.reject(error);
     }
@@ -29,18 +53,55 @@ const getAuthorizedAxios = () => {
 };
 
 const usersApi = {
-  getAllUsers: async () => {
+  getAllUsers: async (page = 1, limit = 10) => {
     try {
       const api = getAuthorizedAxios();
-      const response = await api.get('/users');
-      return response.data;
+      console.log('Fetching users with params:', { page, limit });
+      
+      // Properly send pagination parameters to the server
+      const response = await api.get(`/users?page=${page}&limit=${limit}`);
+      console.log('Raw API response:', response.data);
+      
+      // Transform the response to match Material-UI's pagination expectations
+      const data = response.data;
+      
+      // Handle different response formats
+      if (Array.isArray(data)) {
+        // If server returns just an array, use its length as total
+        return {
+          items: data,
+          total: data.length
+        };
+      } else if (data && typeof data === 'object') {
+        // If server returns paginated response object
+        return {
+          items: Array.isArray(data.items) ? data.items : (Array.isArray(data.data) ? data.data : []),
+          total: data.total || data.totalCount || (Array.isArray(data.items) ? data.items.length : 0)
+        };
+      }
+      
+      return { items: [], total: 0 };
     } catch (error) {
       console.error('Error fetching users:', error);
+      console.error('Error response:', error.response?.data);
       if (error.response && error.response.status !== 401) {
-        // 401 errors are already handled by interceptor
         throw new Error(error.response?.data?.message || 'Failed to fetch users');
       }
-      return [];
+      return { items: [], total: 0 };
+    }
+  },
+
+  registerUser: async (userData) => {
+    try {
+      const api = getAuthorizedAxios();
+      const response = await api.post('/auth/register', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Error registering user:', error);
+      if (error.response && error.response.status !== 401) {
+        throw new Error(error.response?.data?.message || 'Failed to register user');
+      }
+      throw new Error('Authentication failed');
     }
   },
 
@@ -152,31 +213,31 @@ const usersApi = {
     }
   },
 
-  getAllPatients: async () => {
+  getAllPatients: async (page = 1, limit = 10, search = '') => {
     try {
       const api = getAuthorizedAxios();
-      const response = await api.get('/patients');
+      const response = await api.get(`/patients?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching patients:', error);
       if (error.response && error.response.status !== 401) {
         throw new Error(error.response?.data?.message || 'Failed to fetch patients');
       }
-      return [];
+      return { items: [], total: 0 };
     }
   },
 
-  getAllInstitutions: async () => {
+  getAllInstitutions: async (page = 1, limit = 10, search = '') => {
     try {
       const api = getAuthorizedAxios();
-      const response = await api.get('/institutions');
+      const response = await api.get(`/institutions?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching institutions:', error);
       if (error.response && error.response.status !== 401) {
         throw new Error(error.response?.data?.message || 'Failed to fetch institutions');
       }
-      return [];
+      return { items: [], total: 0 };
     }
   }
 };
