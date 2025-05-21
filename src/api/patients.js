@@ -1,5 +1,19 @@
 import axios from 'axios';
-import { API_BASE_URL, getAuthorizedHeaders, isDebugMode, isTokenValid, handleAuthError } from './config';
+import {
+    API_BASE_URL,
+    getAuthorizedHeaders,
+    isDebugMode,
+    isTokenValid,
+    handleAuthError,
+    parseErrorResponse,
+    normalizeFieldNames,
+    normalizeBooleanField,
+    formatDateTimeForAPI,
+    formatDateOnlyForAPI,
+    encodeQueryParams,
+    normalizeTimezone,
+    sanitizeData
+} from './config';
 
 // Create an axios instance with the token in headers
 const getAuthorizedAxios = () => {
@@ -16,6 +30,7 @@ const getAuthorizedAxios = () => {
   const instance = axios.create({
     baseURL: API_BASE_URL,
     headers: {
+        'Content-Type': 'application/json',
       Authorization: isAuth ? `Bearer ${token}` : undefined
     }
   });
@@ -45,12 +60,40 @@ const getAuthorizedAxios = () => {
   return instance;
 };
 
+// Helper function to handle pagination responses
+const normalizePaginationResponse = (data) => {
+    // Handle different pagination response formats
+    if (data.items && typeof data.total === 'number') {
+        // Already in the expected format
+        return {
+            items: normalizeFieldNames(data.items),
+            total: data.total
+        };
+    } else if (data.resourceType === 'Bundle' && Array.isArray(data.entry)) {
+        // FHIR Bundle format
+        return {
+            items: normalizeFieldNames(data.entry.map(item => item.resource)),
+            total: data.total || data.entry.length
+        };
+    } else if (Array.isArray(data)) {
+        // Just an array of items
+        return {
+            items: normalizeFieldNames(data),
+            total: data.length
+        };
+    }
+
+    // Fallback: return empty results
+    console.warn('Unexpected pagination format received:', data);
+    return {items: [], total: 0};
+};
+
 const patientsApi = {
   getAllPatients: async (page = 1, limit = 10) => {
     try {
       const api = getAuthorizedAxios();
-      const response = await api.get(`/patients?page=${page}&limit=${limit}`);
-      return response.data;
+        const response = await api.get(`/patients${encodeQueryParams({page, page_size: limit})}`);
+        return normalizePaginationResponse(response.data);
     } catch (error) {
       console.error('Error fetching patients:', error);
 
@@ -61,10 +104,7 @@ const patientsApi = {
         return { items: [], total: 0 };
       }
 
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to fetch patients');
-      }
-      throw new Error('Network error occurred');
+        throw new Error(parseErrorResponse(error));
     }
   },
 
@@ -81,7 +121,7 @@ const patientsApi = {
       console.log('Making API request to:', `${API_BASE_URL}/patients/${patientId}`);
       const response = await api.get(`/patients/${patientId}`);
       console.log('API response:', response.data);
-      return response.data;
+        return normalizeFieldNames(response.data);
     } catch (error) {
       console.error('Error fetching patient:', error);
       console.error('Error details:', {
@@ -96,38 +136,45 @@ const patientsApi = {
         return null;
       }
 
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to fetch patient');
-      }
-      throw new Error('Network error occurred');
+        throw new Error(parseErrorResponse(error));
     }
   },
 
   createPatient: async (patientData) => {
     try {
-      const api = getAuthorizedAxios();
-      const response = await api.post('/patients', patientData);
-      return response.data;
+        // Ensure dates are in ISO format with timezone normalization
+        const formattedData = {...patientData};
+        if (formattedData.birth_date) {
+            const date = new Date(formattedData.birth_date);
+            formattedData.birth_date = formatDateOnlyForAPI(normalizeTimezone(date));
+        }
+
+        const sanitizedData = sanitizeData(formattedData);
+        const api = getAuthorizedAxios();
+        const response = await api.post('/patients', sanitizedData);
+        return normalizeFieldNames(response.data);
     } catch (error) {
       console.error('Error creating patient:', error);
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to create patient');
-      }
-      throw new Error('Network error occurred');
+        throw new Error(parseErrorResponse(error));
     }
   },
 
   updatePatient: async (patientId, patientData) => {
     try {
-      const api = getAuthorizedAxios();
-      const response = await api.patch(`/patients/${patientId}`, patientData);
-      return response.data;
+        // Ensure dates are in ISO format with timezone normalization
+        const formattedData = {...patientData};
+        if (formattedData.birth_date) {
+            const date = new Date(formattedData.birth_date);
+            formattedData.birth_date = formatDateOnlyForAPI(normalizeTimezone(date));
+        }
+
+        const sanitizedData = sanitizeData(formattedData);
+        const api = getAuthorizedAxios();
+        const response = await api.patch(`/patients/${patientId}`, sanitizedData);
+        return normalizeFieldNames(response.data);
     } catch (error) {
       console.error('Error updating patient:', error);
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to update patient');
-      }
-      throw new Error('Network error occurred');
+        throw new Error(parseErrorResponse(error));
     }
   },
 
@@ -138,10 +185,7 @@ const patientsApi = {
       return response.data;
     } catch (error) {
       console.error('Error deleting patient:', error);
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to delete patient');
-      }
-      throw new Error('Network error occurred');
+        throw new Error(parseErrorResponse(error));
     }
   },
 
@@ -149,7 +193,7 @@ const patientsApi = {
     try {
       const api = getAuthorizedAxios();
       const response = await api.get('/institutions');
-      return response.data;
+        return normalizePaginationResponse(response.data);
     } catch (error) {
       console.error('Error fetching institutions:', error);
 
@@ -159,10 +203,7 @@ const patientsApi = {
         return { items: [], total: 0 };
       }
 
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to fetch institutions');
-      }
-      throw new Error('Network error occurred');
+        throw new Error(parseErrorResponse(error));
     }
   }
 };

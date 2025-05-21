@@ -2,7 +2,7 @@
   "routes": [
     {
       "route": "/api/*",
-      "rewrite": "https://nephroinnovate-api-ultra-minimal-fpgdfabhc7c9egej.swedencentral-01.azurewebsites.net/*"
+      "rewrite": "https://nephroinnovate-gxa8csfucvahhvb8.swedencentral-01.azurewebsites.net/*"
     },
     {
       "route": "/assets/*",

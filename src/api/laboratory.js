@@ -1,137 +1,150 @@
 import axios from 'axios';
-import { API_BASE_URL, getAuthorizedHeaders, isDebugMode, isTokenValid } from './config';
+import {
+  API_BASE_URL,
+  getAuthorizedHeaders,
+  parseErrorResponse,
+  normalizeFieldNames,
+  formatDateTimeForAPI,
+  encodeQueryParams,
+  normalizeTimezone,
+  normalizeNumber,
+  sanitizeData
+} from './config';
 
-// Create an axios instance with the token in headers
-const getAuthorizedAxios = () => {
-  const token = localStorage.getItem('token');
+// Create an axios instance with authentication
+const getApi = () => {
+  const headers = getAuthorizedHeaders();
+  return axios.create({
+    baseURL: API_BASE_URL,
+    headers
+  });
+};
 
-  // Check if token is valid
-  const isAuth = token && isTokenValid();
-
-  if (isDebugMode) {
-    console.log('Token status for API request:', isAuth ? 'Valid' : 'Invalid/Missing');
+// Helper function to normalize pagination data
+const normalizePaginationResponse = (data) => {
+  if (data.items && typeof data.total === 'number') {
+    return {
+      items: normalizeFieldNames(data.items),
+      total: data.total
+    };
+  } else if (data.resourceType === 'Bundle' && Array.isArray(data.entry)) {
+    return {
+      items: normalizeFieldNames(data.entry.map(item => item.resource)),
+      total: data.total || data.entry.length
+    };
+  } else if (Array.isArray(data)) {
+    return {
+      items: normalizeFieldNames(data),
+      total: data.length
+    };
   }
 
-  // Create axios instance with appropriate headers
-  const instance = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-      Authorization: isAuth ? `Bearer ${token}` : undefined
-    }
-  });
-
-  // Add response interceptor to handle auth errors
-  instance.interceptors.response.use(
-    response => response,
-    error => {
-      // Handle 401 Unauthorized errors
-      if (error.response && error.response.status === 401) {
-        if (isDebugMode) {
-          console.warn('401 Unauthorized response received');
-        }
-        console.warn('Authentication error received from API');
-      }
-      return Promise.reject(error);
-    }
-  );
-
-  return instance;
+  console.warn('Unexpected pagination format received:', data);
+  return {items: [], total: 0};
 };
 
 const laboratoryApi = {
   getLabResultsByPatient: async (patientId) => {
     try {
-      const api = getAuthorizedAxios();
-      const response = await api.get(`/laboratory-results?patient_id=${patientId}`);
-      return response.data;
+      const api = getApi();
+        const response = await api.get(`/laboratory-results${encodeQueryParams({patient_id: patientId})}`);
+      return normalizePaginationResponse(response.data);
     } catch (error) {
       console.error('Error fetching laboratory results:', error);
-      if (error.response && error.response.status === 401) {
-        console.warn('Authentication error when fetching laboratory results - user may need to log in');
-        return [];
-      }
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to fetch laboratory results');
-      }
-      throw new Error('Network error occurred');
+      throw new Error(parseErrorResponse(error));
     }
   },
 
   getLabResultsBySession: async (sessionId) => {
     try {
-      const api = getAuthorizedAxios();
-      const response = await api.get(`/laboratory-results?session_id=${sessionId}`);
-      return response.data;
+      const api = getApi();
+        const response = await api.get(`/laboratory-results${encodeQueryParams({session_id: sessionId})}`);
+      return normalizePaginationResponse(response.data);
     } catch (error) {
       console.error('Error fetching laboratory results for session:', error);
-      if (error.response && error.response.status === 401) {
-        console.warn('Authentication error when fetching laboratory results - user may need to log in');
-        return [];
-      }
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to fetch laboratory results');
-      }
-      throw new Error('Network error occurred');
+      throw new Error(parseErrorResponse(error));
     }
   },
 
   getLabResult: async (resultId) => {
     try {
-      const api = getAuthorizedAxios();
+      const api = getApi();
       const response = await api.get(`/laboratory-results/${resultId}`);
-      return response.data;
+      return normalizeFieldNames(response.data);
     } catch (error) {
       console.error('Error fetching laboratory result:', error);
-      if (error.response && error.response.status === 401) {
-        console.warn('Authentication error when fetching laboratory result - user may need to log in');
-        return null;
-      }
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to fetch laboratory result');
-      }
-      throw new Error('Network error occurred');
+      throw new Error(parseErrorResponse(error));
     }
   },
 
   createLabResult: async (resultData) => {
     try {
-      const api = getAuthorizedAxios();
-      const response = await api.post('/laboratory-results', resultData);
-      return response.data;
+      const formattedData = {...resultData};
+      if (formattedData.date) {
+          formattedData.date = formatDateTimeForAPI(normalizeTimezone(formattedData.date));
+      }
+      // Fix field name mismatch - 'date' in frontend vs 'test_date' in backend
+      if (formattedData.date && !formattedData.test_date) {
+        formattedData.test_date = formattedData.date;
+      }
+
+      // Normalize numeric fields
+      Object.keys(formattedData).forEach(key => {
+        if (typeof formattedData[key] === 'number') {
+          formattedData[key] = normalizeNumber(formattedData[key]);
+        }
+      });
+
+      // Sanitize data before sending
+      const sanitizedData = sanitizeData(formattedData);
+
+      const api = getApi();
+      const response = await api.post('/laboratory-results', sanitizedData);
+      return normalizeFieldNames(response.data);
     } catch (error) {
       console.error('Error creating laboratory result:', error);
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to create laboratory result');
-      }
-      throw new Error('Network error occurred');
+      throw new Error(parseErrorResponse(error));
     }
   },
 
   updateLabResult: async (resultId, resultData) => {
     try {
-      const api = getAuthorizedAxios();
-      const response = await api.patch(`/laboratory-results/${resultId}`, resultData);
-      return response.data;
+      const formattedData = {...resultData};
+      if (formattedData.date) {
+          formattedData.date = formatDateTimeForAPI(normalizeTimezone(formattedData.date));
+      }
+      // Fix field name mismatch - 'date' in frontend vs 'test_date' in backend
+      if (formattedData.date && !formattedData.test_date) {
+        formattedData.test_date = formattedData.date;
+      }
+
+      // Normalize numeric fields
+      Object.keys(formattedData).forEach(key => {
+        if (typeof formattedData[key] === 'number') {
+          formattedData[key] = normalizeNumber(formattedData[key]);
+        }
+      });
+
+      // Sanitize data before sending
+      const sanitizedData = sanitizeData(formattedData);
+
+      const api = getApi();
+      const response = await api.patch(`/laboratory-results/${resultId}`, sanitizedData);
+      return normalizeFieldNames(response.data);
     } catch (error) {
       console.error('Error updating laboratory result:', error);
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to update laboratory result');
-      }
-      throw new Error('Network error occurred');
+      throw new Error(parseErrorResponse(error));
     }
   },
 
   deleteLabResult: async (resultId) => {
     try {
-      const api = getAuthorizedAxios();
-      const response = await api.delete(`/laboratory-results/${resultId}`);
-      return response.data;
+      const api = getApi();
+      await api.delete(`/laboratory-results/${resultId}`);
+      return true;
     } catch (error) {
       console.error('Error deleting laboratory result:', error);
-      if (error.response) {
-        throw new Error(error.response.data.message || 'Failed to delete laboratory result');
-      }
-      throw new Error('Network error occurred');
+      throw new Error(parseErrorResponse(error));
     }
   }
 };
