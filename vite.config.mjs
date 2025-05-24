@@ -21,10 +21,10 @@ export default defineConfig(({ mode }) => {
             host: true,
             // Add proxy for API requests during development
             proxy: mode === 'development' ? {
-                '/api': {
-                    target: env.VITE_API_URL || 'http://localhost:3000',
+                '/api/v1': {
+                    target: 'http://localhost:8000',
                     changeOrigin: true,
-                    rewrite: (path) => path.replace(/^\/api/, '')
+                    secure: false
                 }
             } : {}
         },

@@ -1,152 +1,227 @@
-import axios from 'axios';
+import apiClient from './config';
 import {
-  API_BASE_URL,
-  getAuthorizedHeaders,
-  parseErrorResponse,
-  normalizeFieldNames,
-  formatDateTimeForAPI,
-  encodeQueryParams,
-  normalizeTimezone,
-  normalizeNumber,
-  sanitizeData
-} from './config';
+    normalizeListResponse,
+    handleApiError,
+    formatFHIRDateTime,
+    FHIR_RESOURCE_TYPES,
+    createFieldMapper
+} from './helpers';
 
-// Create an axios instance with authentication
-const getApi = () => {
-  const headers = getAuthorizedHeaders();
-  return axios.create({
-    baseURL: API_BASE_URL,
-    headers
-  });
+// Field mapping for laboratory results
+const labFieldMapper = createFieldMapper({
+    date: 'test_date',
+    test_date: 'test_date',
+    hemodialysis_session_id: 'hemodialysis_session_id',
+    patient_id: 'patient_id',
+    hemoglobin: 'hemoglobin',
+    hematocrit: 'hematocrit',
+    potassium: 'potassium',
+    creatinine: 'creatinine',
+    urea: 'urea',
+    phosphorus: 'phosphorus',
+    calcium: 'calcium',
+    albumin: 'albumin',
+    kt_v: 'kt_v'
+});
+
+// Transform lab result to FHIR Observation format
+const transformToFHIRObservation = (labData, type, value, unit) => {
+    return {
+        resourceType: FHIR_RESOURCE_TYPES.observation,
+        status: 'final',
+        code: {
+            coding: [{
+                system: 'http://loinc.org',
+                code: getLoincCode(type),
+                display: type
+            }]
+        },
+        subject: {
+            reference: `Patient/${labData.patient_id}`
+        },
+        effectiveDateTime: formatFHIRDateTime(labData.test_date || labData.date),
+        valueQuantity: {
+            value: value,
+            unit: unit,
+            system: 'http://unitsofmeasure.org'
+        }
+    };
 };
 
-// Helper function to normalize pagination data
-const normalizePaginationResponse = (data) => {
-  if (data.items && typeof data.total === 'number') {
-    return {
-      items: normalizeFieldNames(data.items),
-      total: data.total
+// Get LOINC codes for common lab tests
+const getLoincCode = (testType) => {
+    const loincCodes = {
+        hemoglobin: '718-7',
+        hematocrit: '4544-3',
+        potassium: '2823-3',
+        creatinine: '2160-0',
+        urea: '3094-0',
+        phosphorus: '2777-1',
+        calcium: '17861-6',
+        albumin: '1751-7'
     };
-  } else if (data.resourceType === 'Bundle' && Array.isArray(data.entry)) {
-    return {
-      items: normalizeFieldNames(data.entry.map(item => item.resource)),
-      total: data.total || data.entry.length
-    };
-  } else if (Array.isArray(data)) {
-    return {
-      items: normalizeFieldNames(data),
-      total: data.length
-    };
-  }
-
-  console.warn('Unexpected pagination format received:', data);
-  return {items: [], total: 0};
+    return loincCodes[testType.toLowerCase()] || 'unknown';
 };
 
 const laboratoryApi = {
-  getLabResultsByPatient: async (patientId) => {
-    try {
-      const api = getApi();
-        const response = await api.get(`/laboratory-results${encodeQueryParams({patient_id: patientId})}`);
-      return normalizePaginationResponse(response.data);
-    } catch (error) {
-      console.error('Error fetching laboratory results:', error);
-      throw new Error(parseErrorResponse(error));
-    }
-  },
+    getLabResultsByPatient: async (patientId) => {
+        try {
+            const response = await apiClient.get('/laboratory-results/', {
+                params: {patient_id: patientId}
+            });
 
-  getLabResultsBySession: async (sessionId) => {
-    try {
-      const api = getApi();
-        const response = await api.get(`/laboratory-results${encodeQueryParams({session_id: sessionId})}`);
-      return normalizePaginationResponse(response.data);
-    } catch (error) {
-      console.error('Error fetching laboratory results for session:', error);
-      throw new Error(parseErrorResponse(error));
-    }
-  },
-
-  getLabResult: async (resultId) => {
-    try {
-      const api = getApi();
-      const response = await api.get(`/laboratory-results/${resultId}`);
-      return normalizeFieldNames(response.data);
-    } catch (error) {
-      console.error('Error fetching laboratory result:', error);
-      throw new Error(parseErrorResponse(error));
-    }
-  },
-
-  createLabResult: async (resultData) => {
-    try {
-      const formattedData = {...resultData};
-      if (formattedData.date) {
-          formattedData.date = formatDateTimeForAPI(normalizeTimezone(formattedData.date));
-      }
-      // Fix field name mismatch - 'date' in frontend vs 'test_date' in backend
-      if (formattedData.date && !formattedData.test_date) {
-        formattedData.test_date = formattedData.date;
-      }
-
-      // Normalize numeric fields
-      Object.keys(formattedData).forEach(key => {
-        if (typeof formattedData[key] === 'number') {
-          formattedData[key] = normalizeNumber(formattedData[key]);
+            return normalizeListResponse(response);
+        } catch (error) {
+            throw handleApiError(error, 'getLabResultsByPatient');
         }
-      });
+    },
 
-      // Sanitize data before sending
-      const sanitizedData = sanitizeData(formattedData);
+    getLabResultsBySession: async (sessionId) => {
+        try {
+            const response = await apiClient.get('/laboratory-results/', {
+                params: {session_id: sessionId}
+            });
 
-      const api = getApi();
-      const response = await api.post('/laboratory-results', sanitizedData);
-      return normalizeFieldNames(response.data);
-    } catch (error) {
-      console.error('Error creating laboratory result:', error);
-      throw new Error(parseErrorResponse(error));
-    }
-  },
-
-  updateLabResult: async (resultId, resultData) => {
-    try {
-      const formattedData = {...resultData};
-      if (formattedData.date) {
-          formattedData.date = formatDateTimeForAPI(normalizeTimezone(formattedData.date));
-      }
-      // Fix field name mismatch - 'date' in frontend vs 'test_date' in backend
-      if (formattedData.date && !formattedData.test_date) {
-        formattedData.test_date = formattedData.date;
-      }
-
-      // Normalize numeric fields
-      Object.keys(formattedData).forEach(key => {
-        if (typeof formattedData[key] === 'number') {
-          formattedData[key] = normalizeNumber(formattedData[key]);
+            return normalizeListResponse(response);
+        } catch (error) {
+            throw handleApiError(error, 'getLabResultsBySession');
         }
-      });
+    },
 
-      // Sanitize data before sending
-      const sanitizedData = sanitizeData(formattedData);
+    getLabResult: async (resultId) => {
+        try {
+            const response = await apiClient.get(`/laboratory-results/${resultId}/`);
+            return response.data;
+        } catch (error) {
+            throw handleApiError(error, 'getLabResult');
+        }
+    },
 
-      const api = getApi();
-      const response = await api.patch(`/laboratory-results/${resultId}`, sanitizedData);
-      return normalizeFieldNames(response.data);
-    } catch (error) {
-      console.error('Error updating laboratory result:', error);
-      throw new Error(parseErrorResponse(error));
+    createLabResult: async (resultData) => {
+        try {
+            const formattedData = labFieldMapper.toBackend(resultData);
+
+            // Ensure date is properly formatted
+            if (formattedData.test_date) {
+                formattedData.test_date = formatFHIRDateTime(formattedData.test_date);
+            }
+
+            const response = await apiClient.post('/laboratory-results/', formattedData);
+            return response.data;
+        } catch (error) {
+            throw handleApiError(error, 'createLabResult');
+        }
+    },
+
+    updateLabResult: async (resultId, resultData) => {
+        try {
+            const formattedData = labFieldMapper.toBackend(resultData);
+
+            // Ensure date is properly formatted
+            if (formattedData.test_date) {
+                formattedData.test_date = formatFHIRDateTime(formattedData.test_date);
+            }
+
+            const response = await apiClient.patch(`/laboratory-results/${resultId}/`, formattedData);
+            return response.data;
+        } catch (error) {
+            throw handleApiError(error, 'updateLabResult');
+        }
+    },
+
+    deleteLabResult: async (resultId) => {
+        try {
+            await apiClient.delete(`/laboratory-results/${resultId}/`);
+            return {success: true, message: 'Lab result deleted successfully'};
+        } catch (error) {
+            throw handleApiError(error, 'deleteLabResult');
+        }
+    },
+
+    // Get lab results as FHIR Observations
+    getLabResultsAsFHIR: async (patientId) => {
+        try {
+            const response = await apiClient.get('/laboratory-results/', {
+                params: {patient_id: patientId, format: 'fhir'}
+            });
+
+            // If backend returns FHIR Bundle
+            if (response.data.resourceType === 'Bundle') {
+                return response.data;
+            }
+
+            // Otherwise, transform to FHIR format
+            const results = normalizeListResponse(response);
+            const observations = [];
+
+            results.items.forEach(lab => {
+                // Create observation for each lab value
+                if (lab.hemoglobin) {
+                    observations.push(transformToFHIRObservation(lab, 'hemoglobin', lab.hemoglobin, 'g/dL'));
+                }
+                if (lab.hematocrit) {
+                    observations.push(transformToFHIRObservation(lab, 'hematocrit', lab.hematocrit, '%'));
+                }
+                if (lab.potassium) {
+                    observations.push(transformToFHIRObservation(lab, 'potassium', lab.potassium, 'mmol/L'));
+                }
+                if (lab.creatinine) {
+                    observations.push(transformToFHIRObservation(lab, 'creatinine', lab.creatinine, 'mg/dL'));
+                }
+                if (lab.urea) {
+                    observations.push(transformToFHIRObservation(lab, 'urea', lab.urea, 'mg/dL'));
+                }
+                if (lab.phosphorus) {
+                    observations.push(transformToFHIRObservation(lab, 'phosphorus', lab.phosphorus, 'mg/dL'));
+                }
+                if (lab.calcium) {
+                    observations.push(transformToFHIRObservation(lab, 'calcium', lab.calcium, 'mg/dL'));
+                }
+                if (lab.albumin) {
+                    observations.push(transformToFHIRObservation(lab, 'albumin', lab.albumin, 'g/dL'));
+                }
+            });
+
+            return {
+                resourceType: 'Bundle',
+                type: 'collection',
+                total: observations.length,
+                entry: observations.map(obs => ({resource: obs}))
+            };
+        } catch (error) {
+            throw handleApiError(error, 'getLabResultsAsFHIR');
+        }
+    },
+
+    // Get lab trends for a specific test type
+    getLabTrends: async (patientId, testType, days = 30) => {
+        try {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - days);
+
+            const response = await apiClient.get('/laboratory-results/', {
+                params: {
+                    patient_id: patientId,
+                    test_date__gte: formatFHIRDateTime(startDate),
+                    test_date__lte: formatFHIRDateTime(endDate)
+                }
+            });
+
+            const results = normalizeListResponse(response);
+
+            // Extract trend data for the specific test type
+            return results.items
+                .filter(lab => lab[testType] !== null && lab[testType] !== undefined)
+                .map(lab => ({
+                    date: lab.test_date,
+                    value: lab[testType]
+                }))
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+        } catch (error) {
+            throw handleApiError(error, 'getLabTrends');
+        }
     }
-  },
-
-  deleteLabResult: async (resultId) => {
-    try {
-      const api = getApi();
-      await api.delete(`/laboratory-results/${resultId}`);
-      return true;
-    } catch (error) {
-      console.error('Error deleting laboratory result:', error);
-      throw new Error(parseErrorResponse(error));
-    }
-  }
 };
 
 export default laboratoryApi;

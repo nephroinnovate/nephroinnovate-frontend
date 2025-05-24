@@ -1,211 +1,293 @@
-import axios from 'axios';
+import apiClient from './config';
 import {
-    API_BASE_URL,
-    getAuthorizedHeaders,
-    isDebugMode,
-    isTokenValid,
-    handleAuthError,
-    parseErrorResponse,
-    normalizeFieldNames,
-    normalizeBooleanField,
-    formatDateTimeForAPI,
-    formatDateOnlyForAPI,
-    encodeQueryParams,
-    normalizeTimezone,
-    sanitizeData
-} from './config';
+    normalizeListResponse,
+    handleApiError,
+    buildFHIRHumanName,
+    extractHumanName,
+    buildFHIRContactPoint,
+    extractContactPoint,
+    FHIR_RESOURCE_TYPES,
+    createCachedApiCall
+} from './helpers';
+import {logResourceAccess} from '../utils/auditLogger';
 
-// Create an axios instance with the token in headers
-const getAuthorizedAxios = () => {
-  const token = localStorage.getItem('token');
+// Transform frontend patient data to FHIR format for backend
+const transformToFHIR = (patientData) => {
+  const fhirData = {
+    resourceType: FHIR_RESOURCE_TYPES.patient,
+    active: patientData.active !== false,
+    gender: patientData.gender,
+    birth_date: patientData.date_of_birth || patientData.birth_date
+  };
 
-  // Check if token is valid
-  const isAuth = token && isTokenValid();
-
-  if (isDebugMode) {
-    console.log('Token status for API request:', isAuth ? 'Valid' : 'Invalid/Missing');
+  // Handle name using helper
+  if (patientData.first_name || patientData.last_name) {
+    fhirData.name = buildFHIRHumanName(patientData.first_name, patientData.last_name);
   }
 
-  // Create axios instance with appropriate headers
-  const instance = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-      Authorization: isAuth ? `Bearer ${token}` : undefined
-    }
-  });
-
-  // Add response interceptor to handle auth errors
-  instance.interceptors.response.use(
-    response => response,
-    error => {
-      // Handle 401 Unauthorized errors
-      if (error.response && error.response.status === 401) {
-        if (isDebugMode) {
-          console.warn('401 Unauthorized response received');
-        }
-
-        // Only handle auth error if we're not already on an auth page
-        const currentPath = window.location.pathname;
-        if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
-          // Silent handling - let the caller decide how to handle it
-          console.warn('Authentication error received from API');
-        }
+  // Handle identifiers (medical record number)
+  if (patientData.medical_record_number) {
+    fhirData.identifier = [
+      {
+        type: {
+          coding: [
+            {
+              system: 'http://terminology.hl7.org/CodeSystem/v2-0203',
+              code: 'MR'
+            }
+          ]
+        },
+        value: patientData.medical_record_number
       }
+    ];
+  }
 
-      return Promise.reject(error);
+  // Handle telecom (phone and email) using helpers
+  if (patientData.contact_number || patientData.phone || patientData.email) {
+    fhirData.telecom = [];
+    if (patientData.contact_number || patientData.phone) {
+      fhirData.telecom.push(buildFHIRContactPoint(patientData.contact_number || patientData.phone, 'phone'));
     }
-  );
+    if (patientData.email) {
+      fhirData.telecom.push(buildFHIRContactPoint(patientData.email, 'email'));
+    }
+  }
 
-  return instance;
+  // Handle managing organization (institution)
+  if (patientData.institution_id) {
+    fhirData.managingOrganization = {
+      reference: `Organization/${patientData.institution_id}`,
+      display: patientData.institution_name || 'Organization'
+    };
+  }
+
+  // Copy other fields that might exist
+  if (patientData.primary_diagnosis) {
+    // This would normally be stored in a Condition resource
+    // For now, we'll store it in extension
+    fhirData.extension = [
+      {
+        url: 'http://example.org/primary-diagnosis',
+        valueString: patientData.primary_diagnosis
+      }
+    ];
+  }
+
+  // Handle additional fields through extensions
+  if (!fhirData.extension) {
+    fhirData.extension = [];
+  }
+
+  if (patientData.dialysis_start_date) {
+    fhirData.extension.push({
+      url: 'http://example.org/dialysis-start-date',
+      valueDate: patientData.dialysis_start_date
+    });
+  }
+
+  if (patientData.insurance_info) {
+    fhirData.extension.push({
+      url: 'http://example.org/insurance-info',
+      valueString: patientData.insurance_info
+    });
+  }
+
+  return fhirData;
 };
 
-// Helper function to handle pagination responses
-const normalizePaginationResponse = (data) => {
-    // Handle different pagination response formats
-    if (data.items && typeof data.total === 'number') {
-        // Already in the expected format
-        return {
-            items: normalizeFieldNames(data.items),
-            total: data.total
-        };
-    } else if (data.resourceType === 'Bundle' && Array.isArray(data.entry)) {
-        // FHIR Bundle format
-        return {
-            items: normalizeFieldNames(data.entry.map(item => item.resource)),
-            total: data.total || data.entry.length
-        };
-    } else if (Array.isArray(data)) {
-        // Just an array of items
-        return {
-            items: normalizeFieldNames(data),
-            total: data.length
-        };
-    }
+// Transform FHIR patient data to frontend format
+const transformFromFHIR = (fhirData) => {
+  // Extract names using helper
+  const { firstName, lastName } = extractHumanName(fhirData.name);
 
-    // Fallback: return empty results
-    console.warn('Unexpected pagination format received:', data);
-    return {items: [], total: 0};
+  const patientData = {
+    id: fhirData.id,
+    active: fhirData.active,
+    gender: fhirData.gender,
+    date_of_birth: fhirData.birth_date || fhirData.birthDate,
+    birth_date: fhirData.birth_date || fhirData.birthDate,
+    // Use the computed properties from backend
+    first_name: fhirData.first_name || firstName,
+    last_name: fhirData.last_name || lastName,
+    medical_record_number: fhirData.medical_record_number || '',
+    primary_diagnosis: fhirData.primary_diagnosis || '',
+    dialysis_start_date: fhirData.dialysis_start_date || '',
+    insurance_info: fhirData.insurance_info || '',
+    created_at: fhirData.created_at,
+    updated_at: fhirData.updated_at,
+    resourceType: fhirData.resourceType,
+    institution_id: '' // Initialize institution_id
+  };
+
+  // Extract managing organization
+  if (fhirData.managingOrganization && fhirData.managingOrganization.reference) {
+    const parts = fhirData.managingOrganization.reference.split('/');
+    if (parts.length > 1 && parts[0] === 'Organization') {
+      patientData.institution_id = parts[1];
+      patientData.institution_name = fhirData.managingOrganization.display || '';
+    }
+  }
+
+  // Extract phone and email using helper
+  patientData.contact_number = extractContactPoint(fhirData.telecom, 'phone') || '';
+  patientData.phone = patientData.contact_number;
+  patientData.email = extractContactPoint(fhirData.telecom, 'email') || '';
+
+  // Extract data from extensions
+  if (fhirData.extension && Array.isArray(fhirData.extension)) {
+    fhirData.extension.forEach((ext) => {
+      switch (ext.url) {
+        case 'http://example.org/primary-diagnosis':
+          patientData.primary_diagnosis = ext.valueString || patientData.primary_diagnosis;
+          break;
+        case 'http://example.org/dialysis-start-date':
+          patientData.dialysis_start_date = ext.valueDate || patientData.dialysis_start_date;
+          break;
+        case 'http://example.org/insurance-info':
+          patientData.insurance_info = ext.valueString || patientData.insurance_info;
+          break;
+      }
+    });
+  }
+
+  return patientData;
 };
 
 const patientsApi = {
-  getAllPatients: async (page = 1, limit = 10) => {
-    try {
-      const api = getAuthorizedAxios();
-        const response = await api.get(`/patients${encodeQueryParams({page, page_size: limit})}`);
-        return normalizePaginationResponse(response.data);
-    } catch (error) {
-      console.error('Error fetching patients:', error);
+    getAllPatients: async (page = 1, limit = 10) => {
+        try {
+            const response = await apiClient.get('/patients/', {
+                params: {page, page_size: limit}
+            });
 
-      // Check if the error is due to authentication
-      if (error.response && error.response.status === 401) {
-        // Silently handle auth errors
-        console.warn('Authentication error when fetching patients - user may need to log in');
-        return { items: [], total: 0 };
-      }
-
-        throw new Error(parseErrorResponse(error));
-    }
-  },
-
-  getPatient: async (patientId) => {
-    try {
-      console.log('getPatient called with ID:', patientId);
-      console.log('Current auth status:', {
-        token: localStorage.getItem('token') ? 'present' : 'missing',
-        userRole: localStorage.getItem('userRole'),
-        relatedEntityId: localStorage.getItem('relatedEntityId')
-      });
-      
-      const api = getAuthorizedAxios();
-      console.log('Making API request to:', `${API_BASE_URL}/patients/${patientId}`);
-      const response = await api.get(`/patients/${patientId}`);
-      console.log('API response:', response.data);
-        return normalizeFieldNames(response.data);
-    } catch (error) {
-      console.error('Error fetching patient:', error);
-      console.error('Error details:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
-
-      // Check if the error is due to authentication
-      if (error.response && error.response.status === 401) {
-        console.warn('Authentication error when fetching patient - user may need to log in');
-        return null;
-      }
-
-        throw new Error(parseErrorResponse(error));
-    }
-  },
-
-  createPatient: async (patientData) => {
-    try {
-        // Ensure dates are in ISO format with timezone normalization
-        const formattedData = {...patientData};
-        if (formattedData.birth_date) {
-            const date = new Date(formattedData.birth_date);
-            formattedData.birth_date = formatDateOnlyForAPI(normalizeTimezone(date));
+            const normalized = normalizeListResponse(response);
+            return {
+                ...normalized,
+                items: normalized.items.map(transformFromFHIR)
+            };
+        } catch (error) {
+            throw handleApiError(error, 'getAllPatients');
         }
+    },
 
-        const sanitizedData = sanitizeData(formattedData);
-        const api = getAuthorizedAxios();
-        const response = await api.post('/patients', sanitizedData);
-        return normalizeFieldNames(response.data);
-    } catch (error) {
-      console.error('Error creating patient:', error);
-        throw new Error(parseErrorResponse(error));
-    }
-  },
+    getPatient: async (patientId) => {
+        try {
+            console.log('Fetching patient with ID:', patientId);
+            const response = await apiClient.get(`/patients/${patientId}/`);
+            const patient = transformFromFHIR(response.data);
 
-  updatePatient: async (patientId, patientData) => {
-    try {
-        // Ensure dates are in ISO format with timezone normalization
-        const formattedData = {...patientData};
-        if (formattedData.birth_date) {
-            const date = new Date(formattedData.birth_date);
-            formattedData.birth_date = formatDateOnlyForAPI(normalizeTimezone(date));
+            // Log access
+            logResourceAccess('Patient', patientId, 'read');
+
+            return patient;
+        } catch (error) {
+            throw handleApiError(error, 'getPatient');
         }
+    },
 
-        const sanitizedData = sanitizeData(formattedData);
-        const api = getAuthorizedAxios();
-        const response = await api.patch(`/patients/${patientId}`, sanitizedData);
-        return normalizeFieldNames(response.data);
-    } catch (error) {
-      console.error('Error updating patient:', error);
-        throw new Error(parseErrorResponse(error));
-    }
-  },
+    createPatient: async (patientData) => {
+        try {
+            const fhirData = transformToFHIR(patientData);
+            const response = await apiClient.post('/patients/', fhirData);
+            const patient = transformFromFHIR(response.data);
 
-  deletePatient: async (patientId) => {
-    try {
-      const api = getAuthorizedAxios();
-      const response = await api.delete(`/patients/${patientId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error deleting patient:', error);
-        throw new Error(parseErrorResponse(error));
-    }
-  },
+            // Log creation
+            logResourceAccess('Patient', patient.id, 'create');
 
-  getAllInstitutions: async () => {
-    try {
-      const api = getAuthorizedAxios();
-      const response = await api.get('/institutions');
-        return normalizePaginationResponse(response.data);
-    } catch (error) {
-      console.error('Error fetching institutions:', error);
+            return patient;
+        } catch (error) {
+            throw handleApiError(error, 'createPatient');
+        }
+    },
 
-      // Check if the error is due to authentication
-      if (error.response && error.response.status === 401) {
-        console.warn('Authentication error when fetching institutions - user may need to log in');
-        return { items: [], total: 0 };
-      }
+    updatePatient: async (patientId, patientData) => {
+        try {
+            const fhirData = transformToFHIR(patientData);
+            const response = await apiClient.patch(`/patients/${patientId}/`, fhirData);
+            const patient = transformFromFHIR(response.data);
 
-        throw new Error(parseErrorResponse(error));
-    }
-  }
+            // Log update
+            logResourceAccess('Patient', patientId, 'update');
+
+            return patient;
+        } catch (error) {
+            throw handleApiError(error, 'updatePatient');
+        }
+    },
+
+    deletePatient: async (patientId) => {
+        try {
+            const response = await apiClient.delete(`/patients/${patientId}/`);
+
+            // Log deletion
+            logResourceAccess('Patient', patientId, 'delete');
+
+            return response.data;
+        } catch (error) {
+            throw handleApiError(error, 'deletePatient');
+        }
+    },
+
+    // Search patients with FHIR parameters
+    searchPatients: async (searchParams) => {
+        try {
+            const response = await apiClient.get('/patients/search', {
+                params: searchParams
+            });
+
+            // Handle FHIR Bundle response
+            if (response.data.resourceType === 'Bundle') {
+                return {
+                    items: response.data.entry ?
+                        response.data.entry.map(e => transformFromFHIR(e.resource)) : [],
+                    total: response.data.total || 0
+                };
+            }
+
+            const normalized = normalizeListResponse(response);
+            return {
+                ...normalized,
+                items: normalized.items.map(transformFromFHIR)
+            };
+        } catch (error) {
+            throw handleApiError(error, 'searchPatients');
+        }
+    },
+
+    // Validate patient data against FHIR standards
+    validatePatient: async (patientData) => {
+        try {
+            const fhirData = transformToFHIR(patientData);
+            const response = await apiClient.post('/patients/validate_fhir/', fhirData);
+            return response.data;
+        } catch (error) {
+            throw handleApiError(error, 'validatePatient');
+        }
+    },
+
+    // Bulk import patients
+    bulkImportPatients: async (patientsData) => {
+        try {
+            const fhirDataArray = patientsData.map(transformToFHIR);
+            const response = await apiClient.post('/patients/bulk_import/', fhirDataArray);
+            return response.data;
+        } catch (error) {
+            throw handleApiError(error, 'bulkImportPatients');
+        }
+    },
+
+    getAllInstitutions: createCachedApiCall(
+        async () => {
+            try {
+                const response = await apiClient.get('/organizations/');
+                return normalizeListResponse(response);
+            } catch (error) {
+                throw handleApiError(error, 'getAllInstitutions');
+            }
+        },
+        'institutions',
+        10 * 60 * 1000 // 10 minutes cache
+    )
 };
 
 export default patientsApi;

@@ -106,6 +106,169 @@ const InstitutionManagement = () => {
   const userRole = localStorage.getItem('userRole');
   const isAdmin = userRole === 'admin';
 
+  // Transform frontend data to FHIR format
+  const transformToFHIR = (data) => {
+    const fhirData = {
+      name: data.name,
+      active: true,
+      resourceType: 'Organization'
+    };
+
+    // Transform contact number and email to telecom array
+    const telecom = [];
+    if (data.contact_number) {
+      telecom.push({
+        system: 'phone',
+        value: data.contact_number,
+        use: 'work'
+      });
+    }
+    if (data.email) {
+      telecom.push({
+        system: 'email',
+        value: data.email,
+        use: 'work'
+      });
+    }
+    if (telecom.length > 0) {
+      fhirData.telecom = telecom;
+    }
+
+    // Transform institution type to type array
+    if (data.institution_type) {
+      fhirData.type = [
+        {
+          coding: [
+            {
+              system: 'http://example.org/institution-type',
+              code: data.institution_type,
+              display: data.institution_type.charAt(0).toUpperCase() + data.institution_type.slice(1).replace('_', ' ')
+            }
+          ]
+        }
+      ];
+    }
+
+    // Transform address to address array
+    if (data.address) {
+      fhirData.address = [
+        {
+          use: 'work',
+          type: 'physical',
+          text: data.address
+        }
+      ];
+    }
+
+    // Add identifiers
+    const identifier = [];
+    if (data.registration_number) {
+      identifier.push({
+        system: 'http://example.org/registration',
+        value: data.registration_number
+      });
+    }
+    if (identifier.length > 0) {
+      fhirData.identifier = identifier;
+    }
+
+    // Store extra fields in extension
+    const extensions = [];
+    if (data.establishment_date) {
+      extensions.push({
+        url: 'http://example.org/establishment-date',
+        valueDate: data.establishment_date
+      });
+    }
+    if (data.total_bed_capacity) {
+      extensions.push({
+        url: 'http://example.org/bed-capacity',
+        valueInteger: parseInt(data.total_bed_capacity)
+      });
+    }
+    if (data.dialysis_stations_count) {
+      extensions.push({
+        url: 'http://example.org/dialysis-stations',
+        valueInteger: parseInt(data.dialysis_stations_count)
+      });
+    }
+    if (data.operating_hours) {
+      extensions.push({
+        url: 'http://example.org/operating-hours',
+        valueString: data.operating_hours
+      });
+    }
+    if (extensions.length > 0) {
+      fhirData.extension = extensions;
+    }
+
+    return fhirData;
+  };
+
+  // Transform FHIR data back to frontend format
+  const transformFromFHIR = (fhirData) => {
+    const data = {
+      id: fhirData.id, // Preserve the ID
+      name: fhirData.name || '',
+      address: '',
+      contact_number: '',
+      email: '',
+      registration_number: '',
+      institution_type: '',
+      establishment_date: '',
+      total_bed_capacity: '',
+      dialysis_stations_count: '',
+      operating_hours: ''
+    };
+
+    // Extract telecom
+    if (fhirData.telecom && Array.isArray(fhirData.telecom)) {
+      const phone = fhirData.telecom.find((t) => t.system === 'phone');
+      const email = fhirData.telecom.find((t) => t.system === 'email');
+      if (phone) data.contact_number = phone.value;
+      if (email) data.email = email.value;
+    }
+
+    // Extract type
+    if (fhirData.type && Array.isArray(fhirData.type) && fhirData.type.length > 0) {
+      const typeCode = fhirData.type[0].coding?.[0]?.code;
+      if (typeCode) data.institution_type = typeCode;
+    }
+
+    // Extract address
+    if (fhirData.address && Array.isArray(fhirData.address) && fhirData.address.length > 0) {
+      data.address = fhirData.address[0].text || '';
+    }
+
+    // Extract identifier
+    if (fhirData.identifier && Array.isArray(fhirData.identifier)) {
+      const regNum = fhirData.identifier.find((i) => i.system === 'http://example.org/registration');
+      if (regNum) data.registration_number = regNum.value;
+    }
+
+    // Extract extensions
+    if (fhirData.extension && Array.isArray(fhirData.extension)) {
+      fhirData.extension.forEach((ext) => {
+        switch (ext.url) {
+          case 'http://example.org/establishment-date':
+            data.establishment_date = ext.valueDate || '';
+            break;
+          case 'http://example.org/bed-capacity':
+            data.total_bed_capacity = ext.valueInteger?.toString() || '';
+            break;
+          case 'http://example.org/dialysis-stations':
+            data.dialysis_stations_count = ext.valueInteger?.toString() || '';
+            break;
+          case 'http://example.org/operating-hours':
+            data.operating_hours = ext.valueString || '';
+            break;
+        }
+      });
+    }
+
+    return data;
+  };
+
   // Direct API methods
   const api = {
     // Make a request with authorization
@@ -151,11 +314,11 @@ const InstitutionManagement = () => {
     delete: (url) => api.request('DELETE', url),
 
     // Domain-specific API methods
-    getInstitutions: () => api.get('/institutions'),
-    getInstitution: (id) => api.get(`/institutions/${id}`),
-    createInstitution: (data) => api.post('/institutions', data),
-    updateInstitution: (id, data) => api.patch(`/institutions/${id}`, data),
-    deleteInstitution: (id) => api.delete(`/institutions/${id}`)
+    getInstitutions: () => api.get('/organizations/'),
+    getInstitution: (id) => api.get(`/organizations/${id}/`),
+    createInstitution: (data) => api.post('/organizations/', data),
+    updateInstitution: (id, data) => api.patch(`/organizations/${id}/`, data),
+    deleteInstitution: (id) => api.delete(`/organizations/${id}/`)
   };
 
   // Fetch institutions on load or page change
@@ -168,12 +331,14 @@ const InstitutionManagement = () => {
     setLoading(true);
     try {
       console.log('Fetching institutions...');
-      const response = await axiosAuth.get(`/institutions?page=${page + 1}&limit=${rowsPerPage}`);
+      const response = await axiosAuth.get(`/organizations/?page=${page + 1}&limit=${rowsPerPage}`);
       console.log('Institutions data:', response.data);
-      
+
       // Ensure we always set an array, even if empty
-      setInstitutions(response.data?.items || []);
-      setTotalRows(response.data?.total || 0);
+      const items = response.data?.items || response.data?.results || response.data || [];
+      const transformedItems = Array.isArray(items) ? items.map(transformFromFHIR) : [];
+      setInstitutions(transformedItems);
+      setTotalRows(response.data?.total || response.data?.count || transformedItems.length);
     } catch (error) {
       console.error('Error fetching institutions:', error);
       setInstitutions([]); // Set empty array on error
@@ -226,19 +391,10 @@ const InstitutionManagement = () => {
 
   // Open form dialog for editing institution
   const handleEdit = (institution) => {
+    // Store the full institution object (already transformed from FHIR)
     setSelectedInstitution(institution);
-    setFormData({
-      name: institution.name || '',
-      address: institution.address || '',
-      contact_number: institution.contact_number || '',
-      email: institution.email || '',
-      registration_number: institution.registration_number || '',
-      institution_type: institution.institution_type || '',
-      establishment_date: institution.establishment_date ? institution.establishment_date.split('T')[0] : '',
-      total_bed_capacity: institution.total_bed_capacity || '',
-      dialysis_stations_count: institution.dialysis_stations_count || '',
-      operating_hours: institution.operating_hours || ''
-    });
+    // Set form data with the same institution data
+    setFormData(institution);
     setOpenForm(true);
   };
 
@@ -262,15 +418,17 @@ const InstitutionManagement = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      const fhirData = transformToFHIR(formData);
+
       if (selectedInstitution) {
         // Update existing institution
-        console.log(`Updating institution ${selectedInstitution.id} with data:`, formData);
-        await axiosAuth.patch(`/institutions/${selectedInstitution.id}`, formData);
+        console.log(`Updating institution ${selectedInstitution.id} with FHIR data:`, fhirData);
+        await axiosAuth.patch(`/organizations/${selectedInstitution.id}/`, fhirData);
         showAlert('Institution updated successfully');
       } else {
         // Create new institution
-        console.log('Creating new institution with data:', formData);
-        await axiosAuth.post('/institutions', formData);
+        console.log('Creating new institution with FHIR data:', fhirData);
+        await axiosAuth.post('/organizations/', fhirData);
         showAlert('Institution created successfully');
       }
       setOpenForm(false);
@@ -290,7 +448,7 @@ const InstitutionManagement = () => {
     setLoading(true);
     try {
       console.log(`Deleting institution ${selectedInstitution.id}`);
-      await axiosAuth.delete(`/institutions/${selectedInstitution.id}`);
+      await axiosAuth.delete(`/organizations/${selectedInstitution.id}/`);
       showAlert('Institution deleted successfully');
       setOpenDelete(false);
       fetchData(); // Refresh data
@@ -334,12 +492,7 @@ const InstitutionManagement = () => {
 
       {/* Action buttons */}
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleAddNew}
-        >
+        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleAddNew}>
           Add New Institution
         </Button>
       </Box>
@@ -385,9 +538,7 @@ const InstitutionManagement = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={8} align="center">
-                  <Typography variant="body1">
-                    {loading ? 'Loading institutions...' : 'No institutions found'}
-                  </Typography>
+                  <Typography variant="body1">{loading ? 'Loading institutions...' : 'No institutions found'}</Typography>
                 </TableCell>
               </TableRow>
             )}
@@ -408,21 +559,12 @@ const InstitutionManagement = () => {
 
       {/* Institution Form Dialog */}
       <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {selectedInstitution ? 'Edit Institution' : 'Add New Institution'}
-        </DialogTitle>
+        <DialogTitle>{selectedInstitution ? 'Edit Institution' : 'Add New Institution'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             {/* Institution Name */}
             <Grid item xs={12} md={6}>
-              <TextField
-                name="name"
-                label="Institution Name"
-                value={formData.name}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
+              <TextField name="name" label="Institution Name" value={formData.name} onChange={handleChange} fullWidth required />
             </Grid>
 
             {/* Institution Type */}
@@ -447,38 +589,17 @@ const InstitutionManagement = () => {
 
             {/* Address */}
             <Grid item xs={12}>
-              <TextField
-                name="address"
-                label="Address"
-                value={formData.address}
-                onChange={handleChange}
-                fullWidth
-                multiline
-                rows={2}
-              />
+              <TextField name="address" label="Address" value={formData.address} onChange={handleChange} fullWidth multiline rows={2} />
             </Grid>
 
             {/* Contact Number */}
             <Grid item xs={12} md={6}>
-              <TextField
-                name="contact_number"
-                label="Contact Number"
-                value={formData.contact_number}
-                onChange={handleChange}
-                fullWidth
-              />
+              <TextField name="contact_number" label="Contact Number" value={formData.contact_number} onChange={handleChange} fullWidth />
             </Grid>
 
             {/* Email */}
             <Grid item xs={12} md={6}>
-              <TextField
-                name="email"
-                label="Email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                fullWidth
-              />
+              <TextField name="email" label="Email" type="email" value={formData.email} onChange={handleChange} fullWidth />
             </Grid>
 
             {/* Registration Number */}
@@ -544,12 +665,7 @@ const InstitutionManagement = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseForm}>Cancel</Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            color="primary"
-            disabled={loading}
-          >
+          <Button onClick={handleSubmit} variant="contained" color="primary" disabled={loading}>
             {loading ? <CircularProgress size={24} /> : 'Save'}
           </Button>
         </DialogActions>
@@ -560,18 +676,12 @@ const InstitutionManagement = () => {
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete institution "{selectedInstitution?.name}"?
-            This action cannot be undone.
+            Are you sure you want to delete institution "{selectedInstitution?.name}"? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDelete}>Cancel</Button>
-          <Button
-            onClick={handleDelete}
-            color="error"
-            variant="contained"
-            disabled={loading}
-          >
+          <Button onClick={handleDelete} color="error" variant="contained" disabled={loading}>
             {loading ? <CircularProgress size={24} /> : 'Delete'}
           </Button>
         </DialogActions>

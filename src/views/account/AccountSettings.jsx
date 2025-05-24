@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   Box,
   Button,
@@ -22,7 +22,8 @@ import {
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import usersApi from 'api/users';
-import { IconKey, IconMail, IconUser, IconUserCircle } from '@tabler/icons-react';
+import uploadsApi from 'api/uploads';
+import {IconKey, IconMail, IconUser, IconUserCircle, IconCameraPlus} from '@tabler/icons-react';
 import User1 from 'assets/images/users/user-round.svg';
 
 const AccountSettings = () => {
@@ -41,6 +42,9 @@ const AccountSettings = () => {
     message: '',
     severity: 'success'
   });
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   // Load user profile data
   useEffect(() => {
@@ -54,6 +58,14 @@ const AccountSettings = () => {
           email: profile.email || '',
           username: profile.username || '',
         });
+        // Set initial avatar preview if avatar URL exists
+        if (profile.avatar) {
+          // Django serves media files with /media/ prefix
+          const avatarUrl = profile.avatar.startsWith('http')
+              ? profile.avatar
+              : `${uploadsApi.API_BASE_URL}/media/${profile.avatar}`;
+          setAvatarPreview(avatarUrl);
+        }
       } catch (error) {
         setAlert({
           open: true,
@@ -75,6 +87,75 @@ const AccountSettings = () => {
       ...formData,
       [name]: value
     });
+  };
+
+  // Handle avatar file selection
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Trigger file input click
+  const handleAvatarClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // Handle avatar upload
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) {
+      setAlert({
+        open: true,
+        message: 'Please select an image to upload.',
+        severity: 'warning',
+      });
+      return;
+    }
+    setSaving(true);
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('User ID not found for avatar upload.');
+      }
+      const response = await uploadsApi.uploadAvatar(avatarFile, userId);
+      setAlert({
+        open: true,
+        message: response.message || 'Avatar uploaded successfully!',
+        severity: 'success'
+      });
+      // Refresh profile to get new avatar URL
+      const updatedProfile = await usersApi.getCurrentUserProfile();
+      setUserProfile(updatedProfile);
+      if (updatedProfile.avatar) {
+        // Construct the full URL for the avatar preview
+        // This assumes your backend returns a relative path for the avatar
+        // and that your apiClient or a config file has the base URL.
+        // For uploadsApi, it might be good to expose API_BASE_URL if not already.
+        // For now, let's assume a simple concatenation, adjust as needed.
+        const baseUrl = uploadsApi.API_BASE_URL || ''; // Or your actual base URL
+        const avatarUrl = updatedProfile.avatar.startsWith('http') ? updatedProfile.avatar : `${baseUrl}/media/${updatedProfile.avatar}`;
+        setAvatarPreview(avatarUrl);
+      }
+      setAvatarFile(null); // Clear the selected file
+      // Reload the page after a short delay to update the header profile icon
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (error) {
+      setAlert({
+        open: true,
+        message: `Avatar upload failed: ${error.message}`,
+        severity: 'error',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Handle form submission
@@ -131,17 +212,55 @@ const AccountSettings = () => {
           <Card sx={{ height: '100%', bgcolor: theme.palette.primary.light }}>
             <CardContent>
               <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
-                <Avatar
-                  src={User1}
-                  alt="User Profile"
-                  sx={{
-                    width: 120,
-                    height: 120,
-                    mb: 2,
-                    border: `2px solid ${theme.palette.background.paper}`
-                  }}
+                <Box sx={{position: 'relative', display: 'inline-block'}}>
+                  <Avatar
+                      src={avatarPreview || userProfile?.avatar || User1} // Show preview, then profile avatar, then default
+                      alt="User Profile"
+                      sx={{
+                        width: 120,
+                        height: 120,
+                        mb: 2,
+                        border: `2px solid ${theme.palette.background.paper}`,
+                        cursor: 'pointer'
+                      }}
+                      onClick={handleAvatarClick}
+                  />
+                  <IconButton
+                      color="primary"
+                      sx={{
+                        position: 'absolute',
+                        bottom: 10,
+                        right: 10,
+                        backgroundColor: theme.palette.background.paper,
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.lighter,
+                        },
+                        p: 0.5
+                      }}
+                      onClick={handleAvatarClick}
+                  >
+                    <IconCameraPlus stroke={1.5} size="20px"/>
+                  </IconButton>
+                </Box>
+                <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    ref={fileInputRef}
+                    onChange={handleAvatarChange}
                 />
-                <Typography variant="h3">
+                {avatarFile && (
+                    <Button
+                        variant="contained"
+                        onClick={handleAvatarUpload}
+                        disabled={saving}
+                        size="small"
+                        sx={{mt: 1}}
+                    >
+                      {saving ? <CircularProgress size={20}/> : 'Upload Avatar'}
+                    </Button>
+                )}
+                <Typography variant="h3" sx={{mt: avatarFile ? 0 : 2}}>
                   {userProfile?.firstName} {userProfile?.lastName}
                 </Typography>
                 <Typography variant="subtitle1" color="textSecondary" textTransform="capitalize">

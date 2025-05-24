@@ -31,6 +31,7 @@ import Transitions from 'ui-component/extended/Transitions';
 import useConfig from 'hooks/useConfig';
 import authApi from 'api/auth';
 import usersApi from 'api/users';
+import uploadsApi from 'api/uploads';
 
 // assets
 import User1 from 'assets/images/users/user-round.svg';
@@ -52,6 +53,17 @@ export default function ProfileSection() {
 
   // Get user information
   const userRole = localStorage.getItem('userRole') || 'Guest';
+
+  // Helper function to get avatar URL
+  const getAvatarUrl = () => {
+    if (!userProfile?.avatar) return User1;
+    // Check if it's a full URL or just a filename
+    if (userProfile.avatar.startsWith('http')) {
+      return userProfile.avatar;
+    }
+    // Construct the full URL for the avatar
+    return `${uploadsApi.API_BASE_URL}/media/${userProfile.avatar}`;
+  };
 
   // Load user profile
   useEffect(() => {
@@ -149,7 +161,7 @@ export default function ProfileSection() {
         }}
         icon={
           <Avatar
-            src={User1}
+            src={getAvatarUrl()}
             alt="user-images"
             sx={{
               ...theme.typography.mediumAvatar,

@@ -93,12 +93,22 @@ export default function AuthLogin() {
       });
 
       // Store the access token and user role in localStorage
-      localStorage.setItem('token', response.access_token);
-      localStorage.setItem('userRole', response.role || 'user');
-      localStorage.setItem('userId', response.id);
-      if (response.relatedEntityId) {
-        localStorage.setItem('relatedEntityId', response.relatedEntityId.toString());
+        const accessToken = response.access_token || response.tokens?.access;
+        const refreshToken = response.refresh_token || response.tokens?.refresh;
+        const userRole = response.role || response.user?.role || 'patient';
+        const userId = response.id || response.user?.id || '';
+        const relatedEntityId = response.relatedEntityId || response.user?.relatedEntityId;
+
+        localStorage.setItem('token', accessToken);
+        if (refreshToken) {
+            localStorage.setItem('refresh_token', refreshToken);
       }
+        localStorage.setItem('userRole', userRole);
+        localStorage.setItem('userId', userId);
+
+        if (relatedEntityId) {
+            localStorage.setItem('relatedEntityId', relatedEntityId.toString());
+        }
 
       // Store user data if needed
       if (response.user) {

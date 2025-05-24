@@ -26,7 +26,7 @@ const dashboard = {
       icon: icons.IconDashboard,
       breadcrumbs: false,
       // Only admin and institution roles can access dashboard
-      access: ['admin', 'institution']
+      access: ['admin', 'institution_user']
     },
     {
       id: 'user-roles',
@@ -56,7 +56,7 @@ const dashboard = {
       icon: icons.IconUsersGroup,
       breadcrumbs: false,
       // Admin, institution and patient roles can access
-      access: ['admin', 'institution', 'patient']
+      access: ['admin', 'institution_user', 'patient']
     },
     {
       id: 'patient-dialysis',
@@ -76,7 +76,7 @@ const dashboard = {
       icon: icons.IconSettings,
       breadcrumbs: false,
       // Both admin and institution can access settings
-      access: ['admin', 'institution']
+        access: ['admin', 'institution_user']
     }
   ]
 };

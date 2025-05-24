@@ -61,8 +61,8 @@ const DashboardRoute = ({ children }) => {
   const [hasAccess, setHasAccess] = useState(true);
 
   useEffect(() => {
-    // Only admin and institution roles can access dashboard
-    if (userRole !== 'admin' && userRole !== 'institution') {
+      // Only admin and institution_user roles can access dashboard
+      if (userRole !== 'admin' && userRole !== 'institution_user') {
       setHasAccess(false);
       // Show an alert and redirect to homepage
       alert('You do not have permission to access the dashboard.');
@@ -137,7 +137,8 @@ const MainRoutes = {
       children: [
         {
           path: 'manage',
-          element: <AuthorizedRoute allowedRoles={['admin', 'institution', 'patient']}><PatientManagement /></AuthorizedRoute>
+            element: <AuthorizedRoute
+                allowedRoles={['admin', 'institution_user', 'patient']}><PatientManagement/></AuthorizedRoute>
         },
         {
           path: 'dialysis-data',
@@ -166,7 +167,8 @@ const MainRoutes = {
       children: [
         {
           path: 'settings',
-          element: <AuthorizedRoute allowedRoles={['admin', 'institution', 'patient']}><AccountSettings /></AuthorizedRoute>
+            element: <AuthorizedRoute
+                allowedRoles={['admin', 'institution_user', 'patient']}><AccountSettings/></AuthorizedRoute>
         }
       ]
     },

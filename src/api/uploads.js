@@ -1,24 +1,12 @@
-import axios from 'axios';
-import {API_BASE_URL, getAuthorizedHeaders} from './config';
-
-// Create an axios instance with multipart/form-data content type for file uploads
-const getUploadApi = () => {
-    const headers = getAuthorizedHeaders();
-    // Remove Content-Type so axios can set it properly with boundary for multipart/form-data
-    delete headers['Content-Type'];
-
-    return axios.create({
-        baseURL: API_BASE_URL,
-        headers
-    });
-};
+import apiClient, {API_BASE_URL} from './config'; // Import API_BASE_URL
 
 const uploadsApi = {
+    API_BASE_URL, // Expose API_BASE_URL
     /**
      * Upload a file to the server
      * @param {File} file - The file to upload
      * @param {Object} metadata - Additional metadata to include with the file
-     * @param {string} endpoint - The API endpoint to upload to (e.g., '/users/avatar')
+     * @param {string} endpoint - The API endpoint to upload to (e.g., '/users/avatar/')
      * @returns {Promise<Object>} - The server response
      */
     uploadFile: async (file, metadata = {}, endpoint) => {
@@ -39,8 +27,12 @@ const uploadsApi = {
                 }
             });
 
-            const api = getUploadApi();
-            const response = await api.post(endpoint, formData);
+            // Use apiClient with custom headers for file upload
+            const response = await apiClient.post(endpoint, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             return response.data;
         } catch (error) {
             console.error('Error uploading file:', error);
@@ -55,7 +47,7 @@ const uploadsApi = {
      * @returns {Promise<Object>} - The server response
      */
     uploadAvatar: async (file, userId) => {
-        return uploadsApi.uploadFile(file, {user_id: userId}, '/users/avatar');
+        return uploadsApi.uploadFile(file, { user_id: userId }, '/users/avatar/');
     },
 
     /**
@@ -65,7 +57,7 @@ const uploadsApi = {
      * @returns {Promise<Object>} - The server response
      */
     uploadPatientPhoto: async (file, patientId) => {
-        return uploadsApi.uploadFile(file, {patient_id: patientId}, '/patients/photo');
+        return uploadsApi.uploadFile(file, { patient_id: patientId }, '/patients/photo/');
     },
 
     /**
@@ -75,7 +67,7 @@ const uploadsApi = {
      * @returns {Promise<Object>} - The server response
      */
     uploadDocument: async (file, metadata = {}) => {
-        return uploadsApi.uploadFile(file, metadata, '/documents');
+        return uploadsApi.uploadFile(file, metadata, '/documents/');
     }
 };
 

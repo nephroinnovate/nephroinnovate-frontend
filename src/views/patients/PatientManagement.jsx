@@ -93,10 +93,10 @@ const PatientManagement = () => {
           userRole: localStorage.getItem('userRole'),
           relatedEntityId: localStorage.getItem('relatedEntityId')
         });
-        
-        if (patientId && !isNaN(parseInt(patientId))) {
-          console.log('Attempting to fetch patient data with ID:', parseInt(patientId));
-          const patientData = await patientsApi.getPatient(parseInt(patientId));
+
+          if (patientId) {
+              console.log('Attempting to fetch patient data with ID:', patientId);
+              const patientData = await patientsApi.getPatient(patientId);
           console.log('Received patient data:', patientData);
           if (patientData) {
             setPatients([patientData]);
@@ -313,20 +313,15 @@ const PatientManagement = () => {
       {/* Action buttons */}
       {!isPatientUser && (
         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddNew}
-          >
+          <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleAddNew}>
             Add New Patient
           </Button>
         </Box>
       )}
 
       {/* Patients table */}
-      <TableContainer 
-        component={Paper} 
+      <TableContainer
+        component={Paper}
         sx={{
           backgroundColor: theme.palette.background.paper,
           '& .MuiTable-root': {
@@ -350,8 +345,8 @@ const PatientManagement = () => {
           <TableBody>
             {patients && patients.length > 0 ? (
               patients.map((patient) => (
-                <TableRow 
-                  key={patient.id}
+                <TableRow
+                  key={patient.id || patient._id || `patient-${patients.indexOf(patient)}`}
                   sx={{
                     '&:nth-of-type(odd)': {
                       backgroundColor: theme.palette.action.hover
@@ -385,9 +380,7 @@ const PatientManagement = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={isPatientUser ? 7 : 8} align="center">
-                  <Typography variant="body1">
-                    {loading ? 'Loading patients...' : 'No patients found'}
-                  </Typography>
+                  <Typography variant="body1">{loading ? 'Loading patients...' : 'No patients found'}</Typography>
                 </TableCell>
               </TableRow>
             )}
@@ -418,9 +411,7 @@ const PatientManagement = () => {
           sx: { bgcolor: theme.palette.mode === 'dark' ? '#242b38' : theme.palette.background.paper }
         }}
       >
-        <DialogTitle>
-          {selectedPatient ? 'Edit Patient' : 'Add New Patient'}
-        </DialogTitle>
+        <DialogTitle>{selectedPatient ? 'Edit Patient' : 'Add New Patient'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             {/* Medical Record Number */}
@@ -436,26 +427,12 @@ const PatientManagement = () => {
 
             {/* First Name */}
             <Grid item xs={12} md={6}>
-              <TextField
-                name="first_name"
-                label="First Name"
-                value={formData.first_name}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
+              <TextField name="first_name" label="First Name" value={formData.first_name} onChange={handleChange} fullWidth required />
             </Grid>
 
             {/* Last Name */}
             <Grid item xs={12} md={6}>
-              <TextField
-                name="last_name"
-                label="Last Name"
-                value={formData.last_name}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
+              <TextField name="last_name" label="Last Name" value={formData.last_name} onChange={handleChange} fullWidth required />
             </Grid>
 
             {/* Date of Birth */}
@@ -475,13 +452,7 @@ const PatientManagement = () => {
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel id="gender-label">Gender</InputLabel>
-                <Select
-                  labelId="gender-label"
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  label="Gender"
-                >
+                <Select labelId="gender-label" name="gender" value={formData.gender} onChange={handleChange} label="Gender">
                   <MenuItem value="male">Male</MenuItem>
                   <MenuItem value="female">Female</MenuItem>
                   <MenuItem value="other">Other</MenuItem>
@@ -491,13 +462,7 @@ const PatientManagement = () => {
 
             {/* Contact Number */}
             <Grid item xs={12} md={6}>
-              <TextField
-                name="contact_number"
-                label="Contact Number"
-                value={formData.contact_number}
-                onChange={handleChange}
-                fullWidth
-              />
+              <TextField name="contact_number" label="Contact Number" value={formData.contact_number} onChange={handleChange} fullWidth />
             </Grid>
 
             {/* Primary Diagnosis */}
@@ -563,12 +528,7 @@ const PatientManagement = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseForm}>Cancel</Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            color="primary"
-            disabled={loading}
-          >
+          <Button onClick={handleSubmit} variant="contained" color="primary" disabled={loading}>
             {loading ? <CircularProgress size={24} /> : 'Save'}
           </Button>
         </DialogActions>
@@ -585,18 +545,13 @@ const PatientManagement = () => {
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete patient {selectedPatient?.first_name} {selectedPatient?.last_name}?
-            This action cannot be undone.
+            Are you sure you want to delete patient {selectedPatient?.first_name} {selectedPatient?.last_name}? This action cannot be
+            undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDelete}>Cancel</Button>
-          <Button
-            onClick={handleDelete}
-            color="error"
-            variant="contained"
-            disabled={loading}
-          >
+          <Button onClick={handleDelete} color="error" variant="contained" disabled={loading}>
             {loading ? <CircularProgress size={24} /> : 'Delete'}
           </Button>
         </DialogActions>

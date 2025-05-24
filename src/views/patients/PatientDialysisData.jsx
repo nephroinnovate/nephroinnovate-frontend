@@ -109,15 +109,15 @@ const PatientDialysisData = () => {
       }
 
       // Fetch patient data and dialysis sessions
-      const patientData = await patientsApi.getPatient(parseInt(patientId));
+        const patientData = await patientsApi.getPatient(patientId);
       setPatient(patientData);
 
-      const sessionsData = await dialysisApi.getSessionsByPatient(parseInt(patientId));
-      setSessions(sessionsData);
+      const sessionsResponse = await dialysisApi.getSessionsByPatient(patientId);
+      setSessions(sessionsResponse.items || []);
 
       // Fetch laboratory results
-      const labResultsData = await laboratoryApi.getLabResultsByPatient(parseInt(patientId));
-      setLabResults(labResultsData);
+      const labResultsResponse = await laboratoryApi.getLabResultsByPatient(patientId);
+      setLabResults(labResultsResponse.items || []);
     } catch (error) {
       setAlert({
         open: true,
@@ -136,7 +136,18 @@ const PatientDialysisData = () => {
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString();
+
+    // Handle Date objects
+    if (dateString instanceof Date) {
+      return dateString.toLocaleDateString();
+    }
+
+    // Handle string dates
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch (e) {
+      return dateString;
+    }
   };
 
   const handleCloseAlert = () => {
@@ -341,7 +352,7 @@ const PatientDialysisData = () => {
       const userId = localStorage.getItem('relatedEntityId');
       const resultData = {
         ...labFormData,
-        patient_id: parseInt(userId)
+          patient_id: userId
       };
 
       if (selectedLabResult) {

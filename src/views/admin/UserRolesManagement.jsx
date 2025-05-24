@@ -415,11 +415,7 @@ const UserRolesManagement = () => {
   return (
     <MainCard title="User Roles Management">
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleOpenAddUserDialog}
-        >
+        <Button variant="contained" color="primary" onClick={handleOpenAddUserDialog}>
           Add User
         </Button>
       </Box>
@@ -446,7 +442,7 @@ const UserRolesManagement = () => {
           <TableBody>
             {users && users.length > 0 ? (
               users.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow key={user.id || user._id || `user-${users.indexOf(user)}`}>
                   <TableCell>{user.id}</TableCell>
                   <TableCell>{user.username}</TableCell>
                   <TableCell>{user.email}</TableCell>
@@ -457,9 +453,12 @@ const UserRolesManagement = () => {
                       variant="body2"
                       sx={{
                         fontWeight: 'bold',
-                        color: user.role === 'admin' ? theme.palette.error.main :
-                              user.role === 'patient' ? theme.palette.primary.main :
-                              theme.palette.secondary.main
+                        color:
+                          user.role === 'admin'
+                            ? theme.palette.error.main
+                            : user.role === 'patient'
+                              ? theme.palette.primary.main
+                              : theme.palette.secondary.main
                       }}
                     >
                       {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : '-'}
@@ -467,28 +466,13 @@ const UserRolesManagement = () => {
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        color="primary"
-                        onClick={() => handleOpenRoleDialog(user, 'admin')}
-                      >
+                      <Button variant="outlined" size="small" color="primary" onClick={() => handleOpenRoleDialog(user, 'admin')}>
                         Make Admin
                       </Button>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        color="secondary"
-                        onClick={() => handleOpenRoleDialog(user, 'patient')}
-                      >
+                      <Button variant="outlined" size="small" color="secondary" onClick={() => handleOpenRoleDialog(user, 'patient')}>
                         Link Patient
                       </Button>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        color="info"
-                        onClick={() => handleOpenRoleDialog(user, 'institution')}
-                      >
+                      <Button variant="outlined" size="small" color="info" onClick={() => handleOpenRoleDialog(user, 'institution')}>
                         Link Institution
                       </Button>
                     </Box>
@@ -498,9 +482,7 @@ const UserRolesManagement = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={7} align="center">
-                  <Typography variant="body1">
-                    {loading ? 'Loading users...' : 'No users found'}
-                  </Typography>
+                  <Typography variant="body1">{loading ? 'Loading users...' : 'No users found'}</Typography>
                 </TableCell>
               </TableRow>
             )}
@@ -523,8 +505,8 @@ const UserRolesManagement = () => {
       </TableContainer>
 
       {/* Role assignment dialog */}
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onClose={handleClose}
         maxWidth="md"
         fullWidth
@@ -535,17 +517,15 @@ const UserRolesManagement = () => {
           }
         }}
       >
-        <DialogTitle sx={{ 
-          bgcolor: theme.palette.primary.light,
-          color: theme.palette.primary.dark,
-          py: 2,
-          fontWeight: 700
-        }}>
-          {roleAction === 'admin'
-            ? 'Make User an Admin'
-            : roleAction === 'patient'
-              ? 'Link User to Patient'
-              : 'Link User to Institution'}
+        <DialogTitle
+          sx={{
+            bgcolor: theme.palette.primary.light,
+            color: theme.palette.primary.dark,
+            py: 2,
+            fontWeight: 700
+          }}
+        >
+          {roleAction === 'admin' ? 'Make User an Admin' : roleAction === 'patient' ? 'Link User to Patient' : 'Link User to Institution'}
         </DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ mb: 2 }}>
@@ -600,30 +580,28 @@ const UserRolesManagement = () => {
                         </TableCell>
                       </TableRow>
                     ) : filteredPatients.length > 0 ? (
-                      filteredPatients
-                        .slice(patientPage * patientRowsPerPage, (patientPage + 1) * patientRowsPerPage)
-                        .map((patient) => (
-                          <TableRow 
-                            key={patient.id}
-                            selected={selectedEntity === patient.id}
-                            hover
-                            onClick={() => setSelectedEntity(patient.id)}
-                            sx={{ cursor: 'pointer' }}
-                          >
-                            <TableCell>{patient.medical_record_number || '-'}</TableCell>
-                            <TableCell>{`${patient.first_name} ${patient.last_name}`}</TableCell>
-                            <TableCell>{new Date(patient.date_of_birth).toLocaleDateString()}</TableCell>
-                            <TableCell>
-                              <Button
-                                variant={selectedEntity === patient.id ? "contained" : "outlined"}
-                                size="small"
-                                onClick={() => setSelectedEntity(patient.id)}
-                              >
-                                Select
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
+                      filteredPatients.slice(patientPage * patientRowsPerPage, (patientPage + 1) * patientRowsPerPage).map((patient) => (
+                        <TableRow
+                          key={patient.id}
+                          selected={selectedEntity === patient.id}
+                          hover
+                          onClick={() => setSelectedEntity(patient.id)}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <TableCell>{patient.medical_record_number || '-'}</TableCell>
+                          <TableCell>{`${patient.first_name} ${patient.last_name}`}</TableCell>
+                          <TableCell>{new Date(patient.date_of_birth).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant={selectedEntity === patient.id ? 'contained' : 'outlined'}
+                              size="small"
+                              onClick={() => setSelectedEntity(patient.id)}
+                            >
+                              Select
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
                     ) : (
                       <TableRow>
                         <TableCell colSpan={4} align="center">
@@ -634,7 +612,7 @@ const UserRolesManagement = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
-              
+
               <TablePagination
                 component="div"
                 count={totalPatients}
@@ -692,7 +670,7 @@ const UserRolesManagement = () => {
                       filteredInstitutions
                         .slice(institutionPage * institutionRowsPerPage, (institutionPage + 1) * institutionRowsPerPage)
                         .map((institution) => (
-                          <TableRow 
+                          <TableRow
                             key={institution.id}
                             selected={selectedEntity === institution.id}
                             hover
@@ -704,7 +682,7 @@ const UserRolesManagement = () => {
                             <TableCell>{institution.contact_info || '-'}</TableCell>
                             <TableCell>
                               <Button
-                                variant={selectedEntity === institution.id ? "contained" : "outlined"}
+                                variant={selectedEntity === institution.id ? 'contained' : 'outlined'}
                                 size="small"
                                 onClick={() => setSelectedEntity(institution.id)}
                               >
@@ -723,7 +701,7 @@ const UserRolesManagement = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
-              
+
               <TablePagination
                 component="div"
                 count={totalInstitutions}
@@ -753,9 +731,7 @@ const UserRolesManagement = () => {
       <Dialog open={addUserDialogOpen} onClose={handleCloseAddUserDialog} maxWidth="sm" fullWidth>
         <DialogTitle>Add New User</DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ mb: 2 }}>
-            Enter the details for the new user.
-          </DialogContentText>
+          <DialogContentText sx={{ mb: 2 }}>Enter the details for the new user.</DialogContentText>
 
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -805,12 +781,10 @@ const UserRolesManagement = () => {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseAddUserDialog} color="primary">Cancel</Button>
-          <Button
-            onClick={handleCreateUser}
-            color="primary"
-            disabled={!newUser.email || !newUser.password || loading}
-          >
+          <Button onClick={handleCloseAddUserDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleCreateUser} color="primary" disabled={!newUser.email || !newUser.password || loading}>
             {loading ? <CircularProgress size={24} /> : 'Create User'}
           </Button>
         </DialogActions>
